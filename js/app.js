@@ -1491,7 +1491,7 @@
       lead.hidden = false;
       lead.textContent = done
         ? "MESSAGE SAVED."
-        : "Leave a private note for Lord Frazzle. Your handle is already on the message.";
+        : "Share your thoughts with Lord Frazzle and FranticBytes - Be sure to include your email address if you'd like us to get back to you. Thank you!";
     }
     if (review) {
       if (done) {
