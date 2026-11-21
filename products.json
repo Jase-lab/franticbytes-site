@@ -5,7 +5,15 @@
     "sysop": "Lord Frazzle",
     "canonicalHost": "www.franticbytes.com"
   },
-  "doors": [],
+  "doors": [
+    {
+      "id": "acey-deucey",
+      "key": "1",
+      "name": "Acey Deucey",
+      "status": "open",
+      "blurb": "Bet that the next card falls between the first two."
+    }
+  ],
   "products": [
     {
       "id": "write65",

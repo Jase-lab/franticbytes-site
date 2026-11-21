@@ -610,3 +610,24 @@ code {
 
 /* Hide header and footer until logged in */
 body.pre-login .status-bar { visibility: hidden; }
+
+/* Acey Deucey door */
+#acey-bet {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  color: var(--white);
+  font: inherit;
+  caret-color: var(--green);
+  padding: 0.35rem 0;
+  outline: none;
+}
+#acey-form .block-cursor { display: none; }
+#acey-form label { display: block; margin-top: 0.8rem; }
+.acey-hand {
+  white-space: pre-wrap;
+  margin: 0.15rem 0;
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255, 191, 60, 0.4);
+}

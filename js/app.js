@@ -12,6 +12,7 @@
     product: $("product"),
     downloads: $("downloads"),
     doors: $("doors"),
+    door: $("door"),
     about: $("about"),
     goodbye: $("goodbye"),
   };
@@ -296,7 +297,7 @@
     const q = new URLSearchParams(location.search);
     if (q.has("skip") || q.has("fast") || q.get("go") === "downloads") return true;
     const h = (location.hash || "").toLowerCase();
-    if (h === "#downloads" || h === "#/downloads" || h === "#write65" || h === "#/write65" || h === "#/write65/downloads" || h === "#menu" || h === "#/menu" || h === "#about" || h === "#/about" || h === "#doors" || h === "#/doors") {
+    if (h === "#downloads" || h === "#/downloads" || h === "#write65" || h === "#/write65" || h === "#/write65/downloads" || h === "#menu" || h === "#/menu" || h === "#about" || h === "#/about" || h === "#doors" || h === "#/doors" || h.startsWith("#/doors/")) {
       return true;
     }
     return false;
@@ -508,32 +509,44 @@
   }
 
   function showDoors() {
-    $("doors-lead").textContent = "Online door games, played right from this terminal. No doors are hung yet — the bays below are waiting for a real game, not a placeholder title.";
-    $("doors-note").innerHTML = `<p>“I put the frames up and oiled the hinges. Games come later. Don’t rattle the knobs.”</p><footer>— SysOp ${escapeHtml(sysopName())}</footer>`;
+    const doors = doorList();
+    const ready = doors.some((d) => (d.status || (d.url ? "open" : "coming_soon")) === "open");
+    if (ready) {
+      $("doors-lead").textContent = "Online door games, played right from this terminal.";
+      $("doors-note").innerHTML = `<p>“Bay 1 is hung. Don’t rattle the other knobs.”</p><footer>— SysOp ${escapeHtml(sysopName())}</footer>`;
+    } else {
+      $("doors-lead").textContent = "Online door games, played right from this terminal. No doors are hung yet — the bays below are waiting for a real game, not a placeholder title.";
+      $("doors-note").innerHTML = `<p>“I put the frames up and oiled the hinges. Games come later. Don’t rattle the knobs.”</p><footer>— SysOp ${escapeHtml(sysopName())}</footer>`;
+    }
     const list = $("doors-list");
     list.innerHTML = "";
-    const doors = doorList();
-    const rows = doors.length
-      ? doors
-      : [
-          { id: "bay-1", key: "1", status: "coming_soon" },
-          { id: "bay-2", key: "2", status: "out_of_order" },
-          { id: "bay-3", key: "3", status: "coming_soon" },
-        ];
+    const placeholders = [
+      { id: "bay-1", key: "1", status: "coming_soon" },
+      { id: "bay-2", key: "2", status: "out_of_order" },
+      { id: "bay-3", key: "3", status: "coming_soon" },
+    ];
+    const usedKeys = new Set(doors.map((d) => String(d.key)));
+    const rows = doors.concat(placeholders.filter((p) => !usedKeys.has(String(p.key))));
     rows.forEach((door) => {
       const li = document.createElement("li");
       const status = door.status || (door.url ? "open" : "coming_soon");
       const statusLabel = status === "out_of_order" ? "OUT OF ORDER" : status === "open" ? "READY" : "COMING SOON";
       const title = door.name || ("DOOR " + (door.key || ""));
-      const isOpen = status === "open" && door.url;
-      const el = document.createElement(isOpen ? "a" : "button");
-      if (!isOpen) el.type = "button";
+      const isOpenLink = status === "open" && door.url;
+      const isPlayable = status === "open" && !door.url;
+      const el = document.createElement(isOpenLink ? "a" : "button");
+      if (!isOpenLink) el.type = "button";
       el.className = "dl-link door-slot";
-      if (isOpen) el.href = door.url;
+      if (isOpenLink) el.href = door.url;
       el.dataset.door = door.id || "";
       el.dataset.status = status;
       el.innerHTML = `<kbd>${escapeHtml(door.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(title)}</span><span class="door-status ${status === "out_of_order" ? "out-of-order" : status === "open" ? "ready" : "coming-soon"}">${escapeHtml(statusLabel)}</span>${door.blurb ? `<span class="dl-notes">${escapeHtml(door.blurb)}</span>` : ""}</span>`;
-      if (!isOpen) {
+      if (isPlayable) {
+        el.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          go("door", door.id);
+        });
+      } else if (!isOpenLink) {
         el.addEventListener("click", (ev) => {
           ev.preventDefault();
           showDoorNotice(status);
@@ -547,6 +560,201 @@
     setHash("#/doors");
     const first = list.querySelector(".dl-link, .door-slot");
     if (first) first.focus();
+  }
+
+  const SS_ACEY_CREDITS = "fb_acey_credits";
+  const LS_ACEY_HIGH = "fb_acey_high";
+
+  function aceyHigh() {
+    try {
+      const v = localStorage.getItem(LS_ACEY_HIGH);
+      if (v && /^\d+$/.test(v)) return Number(v);
+    } catch {}
+    return AceyDeucey.START;
+  }
+
+  function saveAceyHigh(n) {
+    const high = Math.max(n, aceyHigh());
+    try { localStorage.setItem(LS_ACEY_HIGH, String(high)); } catch {}
+    return high;
+  }
+
+  function aceyCredits() {
+    try {
+      const v = sessionStorage.getItem(SS_ACEY_CREDITS);
+      if (v && /^\d+$/.test(v)) return Number(v);
+    } catch {}
+    return typeof state.aceyCredits === "number" ? state.aceyCredits : AceyDeucey.START;
+  }
+
+  function setAceyCredits(n) {
+    state.aceyCredits = n;
+    try { sessionStorage.setItem(SS_ACEY_CREDITS, String(n)); } catch {}
+    return saveAceyHigh(n);
+  }
+
+  function appendDoorLog(text, cls) {
+    const log = $("door-log");
+    if (!log) return;
+    const row = document.createElement("div");
+    if (cls) row.className = cls;
+    row.textContent = text || "\u00a0";
+    log.appendChild(row);
+    row.scrollIntoView({ block: "nearest" });
+  }
+
+  function hideAceyForms() {
+    const form = $("acey-form");
+    const actions = $("acey-actions");
+    if (form) form.hidden = true;
+    if (actions) {
+      actions.hidden = true;
+      actions.innerHTML = "";
+    }
+  }
+
+  function aceyCreditsLine() {
+    const n = aceyCredits();
+    const high = saveAceyHigh(n);
+    return "YOU NOW HAVE " + n + " CREDIT" + (n === 1 ? "" : "S") + ".    HIGH " + high;
+  }
+
+  function showAceyBetForm() {
+    const form = $("acey-form");
+    const actions = $("acey-actions");
+    const input = $("acey-bet");
+    if (actions) {
+      actions.hidden = true;
+      actions.innerHTML = "";
+    }
+    if (!form || !input) return;
+    $("acey-bet-label").textContent = "WHAT IS YOUR BET (0 TO PASS)?";
+    form.hidden = false;
+    input.value = "";
+    input.focus();
+  }
+
+  function showAceyNext() {
+    hideAceyForms();
+    const box = $("acey-actions");
+    if (!box) return;
+    box.hidden = false;
+    box.innerHTML = `<button type="button" class="btn btn-amber" id="acey-next">Next hand</button>`;
+    $("acey-next").addEventListener("click", dealAceyHand);
+    $("acey-next").focus();
+  }
+
+  function showAceyBroke() {
+    state.acey = { phase: "broke" };
+    hideAceyForms();
+    appendDoorLog("");
+    appendDoorLog("SORRY, FRIEND, BUT YOU BLEW YOUR WAD.", "err");
+    appendDoorLog("TRY AGAIN (YES OR NO)");
+    const box = $("acey-actions");
+    if (!box) return;
+    box.hidden = false;
+    box.innerHTML = `<button type="button" class="btn btn-amber" id="acey-yes">Yes</button><button type="button" class="btn" id="acey-no">No</button>`;
+    $("acey-yes").addEventListener("click", () => startAceyDeucey(true));
+    $("acey-no").addEventListener("click", () => go("doors"));
+    $("acey-yes").focus();
+  }
+
+  function dealAceyHand() {
+    const A = AceyDeucey;
+    hideAceyForms();
+    if (aceyCredits() <= 0) {
+      showAceyBroke();
+      return;
+    }
+    const a = A.drawCard();
+    const b = A.drawCard();
+    state.acey = { a: a, b: b, phase: "bet" };
+    appendDoorLog(aceyCreditsLine(), "info");
+    appendDoorLog("");
+    appendDoorLog("HERE ARE YOUR NEXT TWO CARDS:");
+    const first = document.createElement("div");
+    first.className = "acey-hand";
+    first.textContent = "     " + A.cardName(a);
+    const second = document.createElement("div");
+    second.className = "acey-hand";
+    second.textContent = "                    " + A.cardName(b);
+    $("door-log").appendChild(first);
+    $("door-log").appendChild(second);
+    second.scrollIntoView({ block: "nearest" });
+    appendDoorLog("");
+    showAceyBetForm();
+  }
+
+  function submitAceyBet(raw) {
+    if (!state.acey || state.acey.phase !== "bet") return;
+    const A = AceyDeucey;
+    const parsed = A.parseBet(raw, aceyCredits());
+    if (!parsed.ok) {
+      if (parsed.reason === "too_much") {
+        appendDoorLog("SORRY, MY FRIEND, BUT YOU BET TOO MUCH.", "err");
+        appendDoorLog("YOU HAVE ONLY " + aceyCredits() + " CREDITS TO BET.");
+      } else {
+        appendDoorLog("ENTER A WHOLE NUMBER FROM 0 TO " + aceyCredits() + ".");
+      }
+      showAceyBetForm();
+      return;
+    }
+    const bet = parsed.bet;
+    const c = A.drawCard();
+    const result = A.resolve(aceyCredits(), bet, state.acey.a, state.acey.b, c);
+    state.acey.phase = "result";
+    state.acey.c = c;
+    hideAceyForms();
+    if (result.outcome === "chicken") {
+      appendDoorLog("CHICKEN!!", "warn");
+    } else {
+      const third = document.createElement("div");
+      third.className = "acey-hand";
+      third.textContent = "                                   " + A.cardName(c);
+      $("door-log").appendChild(third);
+      third.scrollIntoView({ block: "nearest" });
+      if (result.outcome === "win") appendDoorLog("YOU WIN!!!", "ok");
+      else appendDoorLog("SORRY, YOU LOSE", "err");
+    }
+    setAceyCredits(result.credits);
+    if (result.credits <= 0) {
+      showAceyBroke();
+      return;
+    }
+    showAceyNext();
+  }
+
+  function startAceyDeucey(reset) {
+    if (reset || aceyCredits() <= 0) setAceyCredits(AceyDeucey.START);
+    else saveAceyHigh(aceyCredits());
+    const log = $("door-log");
+    if (log) log.innerHTML = "";
+    appendDoorLog("ACEY DEUCEY IS PLAYED IN THE FOLLOWING MANNER");
+    appendDoorLog("THE DEALER (COMPUTER) DEALS TWO CARDS FACE UP.");
+    appendDoorLog("YOU HAVE AN OPTION TO BET OR NOT BET DEPENDING");
+    appendDoorLog("ON WHETHER OR NOT YOU FEEL THE NEXT CARD WILL HAVE");
+    appendDoorLog("A VALUE BETWEEN THE FIRST TWO.");
+    appendDoorLog("IF YOU DO NOT WANT TO BET, INPUT A 0");
+    appendDoorLog("");
+    dealAceyHand();
+  }
+
+  function showDoor(doorId) {
+    const door = doorList().find((d) => d.id === doorId);
+    if (!door || (door.status && door.status !== "open")) {
+      showDoors();
+      return;
+    }
+    state.doorId = door.id;
+    const title = $("door-title");
+    if (title) title.textContent = door.name || "Door";
+    const nav = $("door-nav");
+    if (nav) {
+      nav.innerHTML = `<button type="button" class="menu-item" data-go="doors"><kbd>Q</kbd> Quit to Doors</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
+    }
+    showPanel("door");
+    setHash("#/doors/" + door.id);
+    startAceyDeucey(false);
   }
 
   function showAbout() {
@@ -624,6 +832,10 @@
 
   function go(name, productId) {
     cancelType();
+    if (name === "door") {
+      showDoor(productId || state.doorId || "acey-deucey");
+      return;
+    }
     if (productId) state.productId = productId;
     switch (name) {
       case "connect":
@@ -664,6 +876,8 @@
     if (h === "goodbye") return { view: "goodbye" };
     if (h === "downloads") return { view: "downloads" };
     if (h === "doors") return { view: "doors" };
+    const doorMatch = h.match(/^doors\/([a-z0-9-]+)$/);
+    if (doorMatch) return { view: "door", doorId: doorMatch[1] };
     const m = h.match(/^([a-z0-9-]+)(?:\/(downloads))?$/);
     if (m && productById(m[1])) {
       return { view: m[2] ? "downloads" : "product", productId: m[1] };
@@ -686,7 +900,9 @@
       return;
     }
 
-    if (key === "?") {
+    const typing = isTypingInField(ev.target);
+
+    if (key === "?" && !typing) {
       ev.preventDefault();
       const help = $("help-dialog");
       if (typeof help.showModal === "function") help.showModal();
@@ -713,7 +929,7 @@
       return;
     }
 
-    if (state.view === "login" && isTypingInField(ev.target)) {
+    if (state.view === "login" && typing) {
       if (key === "Escape") {
         ev.preventDefault();
         finishLogin("GUEST");
@@ -721,6 +937,8 @@
       }
       return;
     }
+
+    if (typing) return;
 
     if (key === "Escape" || key === "m" || key === "M") {
       ev.preventDefault();
@@ -773,6 +991,18 @@
       if (match) {
         ev.preventDefault();
         match.click();
+      }
+    }
+
+    if (state.view === "door") {
+      if (k === "Q") { ev.preventDefault(); go("doors"); return; }
+      if (state.acey && state.acey.phase === "broke") {
+        if (k === "Y") { ev.preventDefault(); startAceyDeucey(true); return; }
+        if (k === "N") { ev.preventDefault(); go("doors"); return; }
+      }
+      if (state.acey && state.acey.phase === "result" && (key === "Enter" || key === " ")) {
+        ev.preventDefault();
+        dealAceyHand();
       }
     }
 
@@ -834,6 +1064,18 @@
 
     document.addEventListener("keydown", handleGlobalKey);
 
+    const aceyForm = $("acey-form");
+    if (aceyForm) {
+      aceyForm.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        submitAceyBet($("acey-bet") ? $("acey-bet").value : "");
+      });
+    }
+    const aceyPass = $("acey-pass");
+    if (aceyPass) {
+      aceyPass.addEventListener("click", () => submitAceyBet("0"));
+    }
+
     const help = $("help-dialog");
     if (help) {
       help.addEventListener("close", () => {
@@ -860,6 +1102,8 @@
         go("downloads", route.productId);
       } else if (route.view === "doors") {
         go("doors");
+      } else if (route.view === "door") {
+        go("door", route.doorId);
       } else if (route.view === "product") {
         go("product", route.productId);
       } else if (route.view === "about") {
