@@ -18,8 +18,8 @@
         <div class="scanlines" aria-hidden="true"></div>
         <div class="vignette" aria-hidden="true"></div>
         <header class="status-bar">
-          <span>FRANTICBYTES  //  NODE 1  //  2400 8-N-1</span>
-          <span>SYSOP: FRANTIC  ·  ERROR 404</span>
+          <span>FRANTICBBS  //  NODE 1  //  2400 8-N-1</span>
+          <span>ERROR 404</span>
         </header>
         <main class="screen">
           <section class="panel">
@@ -34,8 +34,12 @@
           </section>
         </main>
         <footer class="status-bar footer-bar">
-          <span>www.franticbytes.com</span>
-          <span></span>
+          <span id="footer-left">www.franticbytes.com</span>
+          <span id="footer-right" class="sysop-corner">
+            <span class="sysop-name">SYSOP: Lord Frazzle</span>
+            <span class="presence" id="sysop-presence"><span class="dot" aria-hidden="true"></span><span class="presence-label"></span></span>
+            <span class="sysop-date" id="sysop-date"></span>
+          </span>
         </footer>
       </div>
     </div>
@@ -50,6 +54,48 @@
         document.getElementById("body").textContent =
           "That build has not been uploaded to the board yet. Check back after the next drop.";
       }
+
+      function todayStamp() {
+        try {
+          var parts = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/Denver",
+            day: "2-digit",
+            month: "short",
+            year: "2-digit"
+          }).formatToParts(new Date());
+          var get = function (t) {
+            for (var i = 0; i < parts.length; i++) if (parts[i].type === t) return parts[i].value;
+            return "";
+          };
+          return get("day") + " " + get("month").replace(".", "").toUpperCase() + " " + get("year");
+        } catch (e) {
+          return "";
+        }
+      }
+
+      function sysopIsOnline() {
+        try {
+          var key = "fb_sysop_online";
+          var existing = sessionStorage.getItem(key);
+          if (existing === "1" || existing === "0") return existing === "1";
+          var on = Math.random() < 0.5;
+          sessionStorage.setItem(key, on ? "1" : "0");
+          return on;
+        } catch (e) {
+          return Math.random() < 0.5;
+        }
+      }
+
+      var on = sysopIsOnline();
+      var presence = document.getElementById("sysop-presence");
+      var dateEl = document.getElementById("sysop-date");
+      if (presence) {
+        presence.className = "presence " + (on ? "online" : "offline");
+        presence.title = on ? "SysOp is on the board" : "SysOp is away from the board";
+        var label = presence.querySelector(".presence-label");
+        if (label) label.textContent = on ? "ONLINE" : "OFFLINE";
+      }
+      if (dateEl) dateEl.textContent = todayStamp();
     })();
   </script>
 </body>

@@ -26,15 +26,60 @@
 
   function todayStamp() {
     try {
-      return new Date().toLocaleDateString("en-US", {
+      const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Denver",
         day: "2-digit",
         month: "short",
-        year: "numeric",
-      }).toUpperCase();
+        year: "2-digit",
+      }).formatToParts(new Date());
+      const get = (type) => {
+        const part = parts.find((p) => p.type === type);
+        return part ? part.value : "";
+      };
+      return `${get("day")} ${get("month").replace(".", "").toUpperCase()} ${get("year")}`;
     } catch {
-      return new Date().toDateString().toUpperCase();
+      const d = new Date();
+      const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const dd = String(d.getDate()).padStart(2, "0");
+      const yy = String(d.getFullYear()).slice(-2);
+      return `${dd} ${months[d.getMonth()]} ${yy}`;
     }
+  }
+
+  function sysopName() {
+    return (state.catalog && state.catalog.site && state.catalog.site.sysop) || "Lord Frazzle";
+  }
+
+  function sysopIsOnline() {
+    try {
+      const key = "fb_sysop_online";
+      const existing = sessionStorage.getItem(key);
+      if (existing === "1" || existing === "0") return existing === "1";
+      const on = Math.random() < 0.5;
+      sessionStorage.setItem(key, on ? "1" : "0");
+      return on;
+    } catch {
+      if (typeof state._sysopOnline !== "boolean") {
+        state._sysopOnline = Math.random() < 0.5;
+      }
+      return state._sysopOnline;
+    }
+  }
+
+  function renderSysopCorner() {
+    const el = $("footer-right");
+    if (!el) return;
+    const on = sysopIsOnline();
+    el.className = "sysop-corner";
+    el.innerHTML = `
+      <span class="sysop-name">SYSOP: ${escapeHtml(sysopName())}</span>
+      <span class="presence ${on ? "online" : "offline"}" title="${on ? "SysOp is on the board" : "SysOp is away from the board"}">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="presence-label">${on ? "ONLINE" : "OFFLINE"}</span>
+      </span>
+      <span class="sysop-date">${escapeHtml(todayStamp())}</span>
+    `;
+    if ($("status-right")) $("status-right").textContent = "";
   }
 
   function sleep(ms) {
@@ -577,8 +622,9 @@
   }
 
   async function boot() {
-    $("status-right").textContent = "SYSOP: FRANTIC  ·  " + todayStamp();
+    renderSysopCorner();
     await loadCatalog();
+    renderSysopCorner();
     bind();
 
     const saved = loadSavedHandle();
