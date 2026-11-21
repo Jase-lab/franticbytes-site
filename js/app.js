@@ -626,23 +626,15 @@
     }
   }
 
-  function clearFishTimers() {
-    if (!state.fish) return;
-    if (state.fish.hookTimer) {
-      clearTimeout(state.fish.hookTimer);
-      state.fish.hookTimer = 0;
+  function hideWumpusPanel() {
+    if (state.wumpus && state.wumpus.digitTimer) {
+      clearTimeout(state.wumpus.digitTimer);
+      state.wumpus.digitTimer = 0;
     }
-    if (state.fish.hookTick) {
-      clearInterval(state.fish.hookTick);
-      state.fish.hookTick = 0;
-    }
-  }
-
-  function hideFishPanel() {
-    clearFishTimers();
-    const panel = $("fish-panel");
+    if (state.wumpus) state.wumpus.digitBuf = "";
+    const panel = $("wumpus-panel");
     if (panel) panel.hidden = true;
-    const controls = $("fish-controls");
+    const controls = $("wumpus-controls");
     if (controls) controls.innerHTML = "";
   }
 
@@ -755,7 +747,7 @@
 
   function startAceyDeucey(reset) {
     hideLemonForms();
-    hideFishPanel();
+    hideWumpusPanel();
     if (reset || aceyCredits() <= 0) setAceyCredits(AceyDeucey.START);
     else saveAceyHigh(aceyCredits());
     const log = $("door-log");
@@ -786,385 +778,361 @@
     showPanel("door");
     setHash("#/doors/" + door.id);
     if (door.id === "lemonade-stand") startLemonade();
-    else if (door.id === "freshwater-fishing") startFishing();
+    else if (door.id === "hunt-the-wumpus") startWumpus();
     else startAceyDeucey(false);
   }
 
-  function setFishMsg(text, cls) {
-    const el = $("fish-msg");
+  function setWumpusMsg(text) {
+    const el = $("wumpus-msg");
     if (!el) return;
-    el.className = "fish-msg" + (cls ? " " + cls : "");
     el.textContent = text || "";
   }
 
-  function fishPrompt() {
-    const g = state.fish;
+  function wumpusPrompt() {
+    const g = state.wumpus;
     if (!g) return "";
-    if (g.phase === "intro") return "PRESS CONTINUE TO START.";
-    if (g.phase === "lake") return "PICK A LAKE.  PRESS 1 OR 2.";
-    if (g.phase === "lure") return "PICK A LURE.";
-    if (g.phase === "boat") return "MOVE WITH ARROWS, THEN PRESS C TO CAST.";
-    if (g.phase === "wait") return "CASTING...";
-    if (g.phase === "hook") return "PRESS SPACE NOW!";
-    if (g.phase === "fight") return (g.fight && FreshwaterFishing.fightHint(g.fight.tension)) || "PRESS R TO REEL.";
-    if (g.phase === "records") return "PRESS BACK TO RETURN.";
-    if (g.phase === "dayend") return "PRESS Y TO FISH AGAIN, OR Q TO QUIT.";
+    if (g.phase === "intro") return "PRESS I FOR INSTRUCTIONS, OR H TO START.";
+    if (g.phase === "instruct") return "PRESS H TO START.";
+    if (g.phase === "play") return "TAP A TUNNEL TO MOVE, OR PRESS S TO SHOOT.";
+    if (g.phase === "shoot") return "TAP A TUNNEL TO SHOOT, OR PRESS L FOR A LONGER PATH.";
+    if (g.phase === "path") {
+      const n = (g.path && g.path.length) || 0;
+      if (n >= HuntTheWumpus.MAX_PATH) return "PRESS F TO FIRE YOUR ARROW.";
+      if (n) return "TAP ANOTHER ROOM, OR PRESS F TO FIRE.";
+      return "TAP ROOMS TO AIM (1-5), THEN PRESS F TO FIRE.";
+    }
+    if (g.phase === "over") return "SAME SETUP (Y-N)?";
     return "";
   }
 
-  function renderFishView() {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g || !g.lake) return;
-    const cell = F.tileAt(g.lake, g.x, g.y);
-    const lure = F.lureById(g.lureId);
-    const status = $("fish-status");
-    if (status) {
-      status.textContent = g.lake.name + "          CASTS " + g.casts + "/" + F.CASTS_PER_DAY + "\n" +
-        "DEPTH " + cell.depth + " FT        BOTTOM " + cell.bottom + "\n" +
-        "LURE " + lure.name;
+  function offeredWumpusRooms() {
+    const W = HuntTheWumpus;
+    const g = state.wumpus;
+    if (!g || !g.game) return [];
+    if (g.phase === "play" || g.phase === "shoot") return W.tunnels(g.game.player);
+    if (g.phase === "path") {
+      const path = g.path || [];
+      if (path.length >= W.MAX_PATH) return [];
+      const from = path.length ? path[path.length - 1] : g.game.player;
+      return W.tunnels(from).filter((room) => W.validAimRoom(path, room));
     }
-    const map = $("fish-map");
-    if (map) map.textContent = F.renderMap(g.lake, g.x, g.y, g.heading);
-    const legend = $("fish-legend");
-    if (legend) legend.textContent = F.mapLegend();
+    return [];
   }
 
-  function showFishBoatControls() {
-    const box = $("fish-controls");
-    if (!box) return;
-    box.innerHTML = `<div class="fish-pad" role="group" aria-label="Steer the boat"><button type="button" class="btn" id="fish-up" data-fish-dir="ArrowUp" aria-label="North">↑</button><button type="button" class="btn" id="fish-left" data-fish-dir="ArrowLeft" aria-label="West">←</button><button type="button" class="btn" id="fish-down" data-fish-dir="ArrowDown" aria-label="South">↓</button><button type="button" class="btn" id="fish-right" data-fish-dir="ArrowRight" aria-label="East">→</button></div><div class="intro-actions fish-cmd"><button type="button" class="btn btn-amber" id="fish-cast">Cast</button><button type="button" class="btn" id="fish-lure">Change lure</button><button type="button" class="btn" id="fish-records">Records</button></div>`;
-    Array.from(box.querySelectorAll("[data-fish-dir]")).forEach((btn) => {
-      btn.addEventListener("click", () => moveFishBoat(btn.getAttribute("data-fish-dir")));
+  function showWumpusRooms(box, rooms, onPick) {
+    const wrap = document.createElement("div");
+    wrap.className = "wumpus-rooms";
+    wrap.setAttribute("role", "group");
+    wrap.setAttribute("aria-label", "Rooms");
+    rooms.forEach((room) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn btn-amber";
+      btn.textContent = String(room);
+      btn.setAttribute("data-wumpus-room", String(room));
+      btn.addEventListener("click", () => onPick(room));
+      wrap.appendChild(btn);
     });
-    $("fish-cast").addEventListener("click", fishCast);
-    $("fish-lure").addEventListener("click", () => fishPickLure(false));
-    $("fish-records").addEventListener("click", fishShowRecords);
-    $("fish-cast").focus();
+    box.appendChild(wrap);
   }
 
-  function isFishBoatMode() {
-    return state.view === "door" && state.doorId === "freshwater-fishing" && state.fish && state.fish.phase === "boat";
+  function renderWumpusControls() {
+    const W = HuntTheWumpus;
+    const g = state.wumpus;
+    const panel = $("wumpus-panel");
+    const box = $("wumpus-controls");
+    if (!g || !panel || !box) return;
+    panel.hidden = false;
+    box.innerHTML = "";
+    setWumpusMsg(wumpusPrompt());
+
+    if (g.phase === "intro" || g.phase === "instruct") {
+      const actions = document.createElement("div");
+      actions.className = "intro-actions wumpus-cmd";
+      if (g.phase === "intro") {
+        const inst = document.createElement("button");
+        inst.type = "button";
+        inst.className = "btn";
+        inst.id = "wumpus-instructions";
+        inst.textContent = "Instructions";
+        inst.addEventListener("click", showWumpusInstructions);
+        actions.appendChild(inst);
+      }
+      const hunt = document.createElement("button");
+      hunt.type = "button";
+      hunt.className = "btn btn-amber";
+      hunt.id = "wumpus-start";
+      hunt.textContent = "Hunt";
+      hunt.addEventListener("click", () => beginWumpus(false));
+      actions.appendChild(hunt);
+      box.appendChild(actions);
+      hunt.focus();
+      return;
+    }
+
+    if (g.phase === "over") {
+      const actions = document.createElement("div");
+      actions.className = "intro-actions wumpus-cmd";
+      const same = document.createElement("button");
+      same.type = "button";
+      same.className = "btn btn-amber";
+      same.id = "wumpus-same";
+      same.textContent = "Same setup";
+      same.addEventListener("click", () => beginWumpus(true));
+      const neu = document.createElement("button");
+      neu.type = "button";
+      neu.className = "btn";
+      neu.id = "wumpus-new";
+      neu.textContent = "New setup";
+      neu.addEventListener("click", () => beginWumpus(false));
+      actions.appendChild(same);
+      actions.appendChild(neu);
+      box.appendChild(actions);
+      same.focus();
+      return;
+    }
+
+    const status = document.createElement("div");
+    status.className = "wumpus-status";
+    status.id = "wumpus-status";
+    status.textContent = "ARROWS LEFT: " + g.game.arrows;
+    box.appendChild(status);
+
+    if (g.phase === "path") {
+      const path = document.createElement("div");
+      path.className = "wumpus-path";
+      path.textContent = "PATH: " + ((g.path && g.path.length) ? g.path.join(" ") : "(EMPTY)");
+      box.appendChild(path);
+    }
+
+    const rooms = offeredWumpusRooms();
+    if (rooms.length) {
+      const pick = (room) => {
+        if (g.phase === "play") wumpusMove(room);
+        else if (g.phase === "shoot") wumpusFire([room]);
+        else wumpusAddPath(room);
+      };
+      showWumpusRooms(box, rooms, pick);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "intro-actions wumpus-cmd";
+    if (g.phase === "play") {
+      const shoot = document.createElement("button");
+      shoot.type = "button";
+      shoot.className = "btn";
+      shoot.id = "wumpus-shoot";
+      shoot.textContent = "Shoot";
+      shoot.addEventListener("click", enterWumpusShoot);
+      actions.appendChild(shoot);
+    } else if (g.phase === "shoot") {
+      const longer = document.createElement("button");
+      longer.type = "button";
+      longer.className = "btn";
+      longer.id = "wumpus-longer";
+      longer.textContent = "Longer path";
+      longer.addEventListener("click", enterWumpusPath);
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "btn";
+      cancel.id = "wumpus-cancel";
+      cancel.textContent = "Cancel";
+      cancel.addEventListener("click", cancelWumpusShoot);
+      actions.appendChild(longer);
+      actions.appendChild(cancel);
+    } else if (g.phase === "path") {
+      const fire = document.createElement("button");
+      fire.type = "button";
+      fire.className = "btn btn-amber";
+      fire.id = "wumpus-fire";
+      fire.textContent = "Fire arrow";
+      fire.disabled = !(g.path && g.path.length);
+      fire.addEventListener("click", () => {
+        if (g.path && g.path.length) wumpusFire(g.path);
+      });
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "btn";
+      cancel.id = "wumpus-cancel";
+      cancel.textContent = "Cancel";
+      cancel.addEventListener("click", cancelWumpusShoot);
+      actions.appendChild(fire);
+      actions.appendChild(cancel);
+    }
+    box.appendChild(actions);
   }
 
-  function moveFishBoat(key) {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!isFishBoatMode() || !g) return;
-    const next = F.moveBoat(g.lake, g.x, g.y, g.heading, key);
-    g.x = next.x;
-    g.y = next.y;
-    g.heading = next.heading;
-    renderFishView();
-    if (!next.moved) setFishMsg("THAT'S THE BANK.  " + fishPrompt());
-    else setFishMsg(fishPrompt());
-  }
-
-  function startFishing() {
+  function startWumpus() {
     hideAceyForms();
     hideLemonForms();
-    hideFishPanel();
+    hideWumpusPanel();
     state.acey = null;
     state.lemon = null;
-    state.fish = { phase: "intro" };
+    state.wumpus = { phase: "intro", game: null, saved: null, path: [], digitBuf: "", digitTimer: 0 };
     const log = $("door-log");
     if (log) log.innerHTML = "";
-    const panel = $("fish-panel");
-    if (panel) panel.hidden = true;
-    [
-      "FRESHWATER FISHING",
-      "",
-      "MOTOR OUT TO THE WEEDS OR A DROP-OFF",
-      "AND CAST.  WHEN YOU GET A BITE, SET",
-      "THE HOOK.  THEN REEL -- OR GIVE SLACK",
-      "IF THE LINE GETS TOO TIGHT.",
-      "",
-      "ARROW KEYS STEER THE BOAT.",
-      "YOU GET 8 CASTS TODAY.",
-      "",
-      "TIGHT LINES!"
-    ].forEach((line) => appendDoorLog(line));
-    if (panel) panel.hidden = false;
-    const st = $("fish-status");
-    if (st) st.textContent = "";
-    const mp = $("fish-map");
-    if (mp) mp.textContent = "";
-    const lg = $("fish-legend");
-    if (lg) lg.textContent = "";
-    setFishMsg(fishPrompt());
-    const host = $("fish-controls");
-    if (host) {
-      host.innerHTML = `<div class="intro-actions fish-cmd"><button type="button" class="btn btn-amber" id="fish-continue">Continue</button></div>`;
-      $("fish-continue").addEventListener("click", fishChooseLake);
-      $("fish-continue").focus();
-    }
+    appendDoorLog("HUNT THE WUMPUS");
+    appendDoorLog("");
+    appendDoorLog("THE WUMPUS LIVES IN A CAVE OF 20 ROOMS.");
+    appendDoorLog("EACH ROOM HAS 3 TUNNELS.");
+    appendDoorLog("YOU HAVE 5 CROOKED ARROWS.");
+    appendDoorLog("");
+    renderWumpusControls();
   }
 
-  function fishChooseLake() {
-    const F = FreshwaterFishing;
-    const log = $("door-log");
-    if (log) log.innerHTML = "";
-    state.fish = { phase: "lake" };
-    const panel = $("fish-panel");
-    if (panel) panel.hidden = false;
-    const st = $("fish-status"); if (st) st.textContent = "";
-    const mp = $("fish-map"); if (mp) mp.textContent = "";
-    const lg = $("fish-legend"); if (lg) lg.textContent = "";
-    setFishMsg(fishPrompt());
-    const box = $("fish-controls");
-    if (!box) return;
-    box.innerHTML = `<div class="intro-actions fish-cmd">${F.LAKES.map((lake, i) => `<button type="button" class="btn ${i === 0 ? "btn-amber" : ""}" data-fish-lake="${lake.id}"><kbd>${i + 1}</kbd> ${escapeHtml(lake.name)}</button>`).join("")}</div>`;
-    Array.from(box.querySelectorAll("[data-fish-lake]")).forEach((btn) => {
-      btn.addEventListener("click", () => fishLaunch(btn.getAttribute("data-fish-lake")));
-    });
-    const first = box.querySelector("button");
-    if (first) first.focus();
-  }
-
-  function fishLaunch(lakeId) {
-    const F = FreshwaterFishing;
-    const lake = F.lakeById(lakeId);
-    const dock = F.findDock(lake);
-    const log = $("door-log");
-    if (log) log.innerHTML = "";
-    const saved = F.loadLure();
-    const lureId = saved || "worm";
-    state.fish = {
-      phase: saved ? "boat" : "lure",
-      lake: lake,
-      x: dock.x,
-      y: dock.y,
-      heading: "N",
-      lureId: lureId,
-      speed: F.autoSpeed(F.lureById(lureId)),
-      casts: 0,
-      catch: [],
-      hookTimer: 0,
-      hookTick: 0
-    };
-    const panel = $("fish-panel");
-    if (panel) panel.hidden = false;
-    if (!saved) {
-      fishPickLure(true);
-      return;
-    }
-    renderFishView();
-    setFishMsg(fishPrompt());
-    showFishBoatControls();
-  }
-
-  function fishPickLure(required) {
-    const F = FreshwaterFishing;
-    const g = state.fish;
+  function showWumpusInstructions() {
+    const g = state.wumpus;
     if (!g) return;
-    if (!required && g.phase !== "boat") return;
-    g.phase = "lure";
-    setFishMsg(fishPrompt());
-    const box = $("fish-controls");
-    if (!box) return;
-    const back = required ? "" : `<button type="button" class="btn" id="fish-back">Back</button>`;
-    box.innerHTML = `<div class="intro-actions fish-cmd">${F.LURES.map((lure) => `<button type="button" class="btn ${lure.id === g.lureId ? "btn-amber" : ""}" data-fish-lure="${lure.id}">${escapeHtml(lure.name)}</button>`).join("")}${back}</div>`;
-    Array.from(box.querySelectorAll("[data-fish-lure]")).forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const id = btn.getAttribute("data-fish-lure");
-        state.fish.lureId = id;
-        state.fish.speed = F.autoSpeed(F.lureById(id));
-        F.saveLure(id);
-        state.fish.phase = "boat";
-        renderFishView();
-        setFishMsg("TIED ON A " + F.lureById(id).name + ".  " + fishPrompt());
-        showFishBoatControls();
-      });
-    });
-    const backBtn = $("fish-back");
-    if (backBtn) {
-      backBtn.addEventListener("click", () => {
-        state.fish.phase = "boat";
-        setFishMsg(fishPrompt());
-        showFishBoatControls();
-      });
-    }
-    const first = box.querySelector("button");
-    if (first) first.focus();
+    g.phase = "instruct";
+    HuntTheWumpus.instructions().forEach((line) => appendDoorLog(line));
+    appendDoorLog("");
+    renderWumpusControls();
   }
 
-  function fishShowRecords() {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g || (g.phase !== "boat" && g.phase !== "dayend")) return;
-    const from = g.phase;
-    g.phase = "records";
-    const rec = F.loadRecords();
-    const names = F.SPECIES.map((s) => s.name);
-    const lines = ["PERSONAL BESTS", ""];
-    let any = false;
-    names.forEach((name) => {
-      if (rec[name]) {
-        any = true;
-        lines.push(name + "  " + F.formatWeight(rec[name].ounces) + "  " + rec[name].lake);
-      }
-    });
-    if (!any) lines.push("NO RECORDS YET.  GO CATCH SOMETHING.");
-    setFishMsg(fishPrompt());
-    const box = $("fish-controls");
-    if (!box) return;
-    box.innerHTML = `<pre class="fish-status">${escapeHtml(lines.join("\n"))}</pre><div class="intro-actions fish-cmd"><button type="button" class="btn btn-amber" id="fish-back">Back</button></div>`;
-    $("fish-back").addEventListener("click", () => {
-      state.fish.phase = from;
-      if (from === "dayend") fishShowDayEnd();
-      else {
-        setFishMsg(fishPrompt());
-        renderFishView();
-        showFishBoatControls();
-      }
-    });
-    $("fish-back").focus();
-  }
-
-  function fishAfterCast() {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g) return;
-    clearFishTimers();
-    if (g.casts >= F.CASTS_PER_DAY) {
-      fishShowDayEnd();
-      return;
-    }
-    g.phase = "boat";
-    renderFishView();
-    const keep = ($("fish-msg") && $("fish-msg").textContent) || "";
-    const result = keep && !keep.startsWith("MOVE WITH") ? keep + "  " : "";
-    setFishMsg(result + fishPrompt());
-    showFishBoatControls();
-  }
-
-  function fishShowDayEnd() {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g) return;
-    clearFishTimers();
-    g.phase = "dayend";
-    const lines = ["THE SUN IS GETTING LOW.  TIME TO HEAD IN.", "", "TODAY'S CATCH:"];
-    if (!g.catch.length) lines.push("  DIDN'T LAND A ONE TODAY.");
+  function beginWumpus(same) {
+    const W = HuntTheWumpus;
+    const g = state.wumpus || { digitBuf: "", digitTimer: 0 };
+    if (same && g.saved) g.game = W.resetFrom(g.saved);
     else {
-      g.catch.forEach((c) => {
-        lines.push("  " + c.species + "  " + F.formatWeight(c.ounces) + "  " + c.lake);
-      });
+      g.saved = W.placeAll();
+      g.game = W.cloneState(g.saved);
     }
-    setFishMsg(fishPrompt());
-    const box = $("fish-controls");
-    if (!box) return;
-    box.innerHTML = `<pre class="fish-status">${escapeHtml(lines.join("\n"))}</pre><div class="intro-actions fish-cmd"><button type="button" class="btn btn-amber" id="fish-again">Fish again</button><button type="button" class="btn" id="fish-rec-end">Records</button><button type="button" class="btn" id="fish-quit">Quit to Doors</button></div>`;
-    $("fish-again").addEventListener("click", startFishing);
-    $("fish-rec-end").addEventListener("click", fishShowRecords);
-    $("fish-quit").addEventListener("click", () => go("doors"));
-    $("fish-again").focus();
+    g.phase = "play";
+    g.path = [];
+    g.digitBuf = "";
+    state.wumpus = g;
+    appendDoorLog("");
+    appendDoorLog("HUNT THE WUMPUS");
+    showWumpusTurn();
   }
 
-  function fishCast() {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g || g.phase !== "boat") return;
-    if (g.casts >= F.CASTS_PER_DAY) {
-      fishShowDayEnd();
-      return;
-    }
-    g.casts += 1;
-    const cell = F.tileAt(g.lake, g.x, g.y);
-    g.phase = "wait";
-    renderFishView();
-    setFishMsg(fishPrompt());
-    const box = $("fish-controls");
-    if (box) box.innerHTML = "";
-    clearFishTimers();
-    g.hookTimer = setTimeout(() => {
-      const bite = F.rollBite(cell, F.lureById(g.lureId), g.speed);
-      if (!bite.bite) {
-        setFishMsg("NOTHING.  TRY ANOTHER SPOT.");
-        fishAfterCast();
-        return;
-      }
-      g.pending = bite;
-      g.phase = "hook";
-      g.hookStart = Date.now();
-      if (box) {
-        box.innerHTML = `<div class="intro-actions fish-cmd"><button type="button" class="btn btn-amber" id="fish-hook">Set the hook</button></div>`;
-        $("fish-hook").addEventListener("click", () => fishSetHook(true));
-        $("fish-hook").focus();
-      }
-      const tick = () => {
-        if (!state.fish || state.fish.phase !== "hook") return;
-        const left = Math.max(0, Math.ceil((bite.window - (Date.now() - g.hookStart)) / 1000));
-        setFishMsg(bite.kind + "!  PRESS SPACE NOW!  " + left, "now");
-      };
-      tick();
-      g.hookTick = setInterval(tick, 250);
-      g.hookTimer = setTimeout(() => fishSetHook(false), bite.window);
-    }, 500);
+  function showWumpusTurn() {
+    const g = state.wumpus;
+    if (!g || !g.game) return;
+    g.phase = "play";
+    g.path = [];
+    appendDoorLog("");
+    HuntTheWumpus.turnLines(g.game).forEach((line) => appendDoorLog(line));
+    renderWumpusControls();
   }
 
-  function fishSetHook(manual) {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g || g.phase !== "hook") return;
-    const elapsed = Date.now() - (g.hookStart || 0);
-    const windowMs = (g.pending && g.pending.window) || F.HOOK_WINDOW;
-    clearFishTimers();
-    const ok = manual && F.hookHit(elapsed, windowMs);
-    if (!ok) {
-      setFishMsg("TOO LATE!  IT GOT AWAY.", "err");
-      fishAfterCast();
+  function wumpusMove(room) {
+    const g = state.wumpus;
+    if (!g || g.phase !== "play" || !g.game) return;
+    const res = HuntTheWumpus.move(g.game, room);
+    if (!res.ok) {
+      appendDoorLog("NOT POSSIBLE -");
+      setWumpusMsg("NOT POSSIBLE.  " + wumpusPrompt());
       return;
     }
-    setFishMsg("HE'S ON!  " + F.fightHint(2), "ok");
-    g.fight = F.startFight(g.pending.ounces);
-    g.phase = "fight";
-    fishRenderFight();
+    (res.messages || []).forEach((line) => appendDoorLog(line));
+    if (res.over) {
+      endWumpus(res.win);
+      return;
+    }
+    showWumpusTurn();
   }
 
-  function fishRenderFight() {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g || !g.fight || !g.pending) return;
-    const fight = g.fight;
-    const hint = F.fightHint(fight.tension);
-    const slackNow = fight.tension >= 4;
-    setFishMsg(hint + (fight.note && fight.note !== hint ? "  " + fight.note : ""), slackNow ? "now" : "");
-    const box = $("fish-controls");
-    if (box) {
-      box.innerHTML = `<pre class="fish-status">FIGHTING A ${escapeHtml(g.pending.species.name)}\nLINE TENSION  ${escapeHtml(F.tensionBar(fight.tension))}</pre><div class="intro-actions fish-cmd"><button type="button" class="btn ${slackNow ? "" : "btn-amber"}" id="fish-reel">Reel</button><button type="button" class="btn ${slackNow ? "btn-amber" : ""}" id="fish-slack">Give slack</button></div>`;
-      $("fish-reel").addEventListener("click", () => fishFight("reel"));
-      $("fish-slack").addEventListener("click", () => fishFight("slack"));
-      const focus = $(slackNow ? "fish-slack" : "fish-reel");
-      if (focus) focus.focus();
-    }
+  function enterWumpusShoot() {
+    const g = state.wumpus;
+    if (!g || g.phase !== "play") return;
+    g.phase = "shoot";
+    g.path = [];
+    renderWumpusControls();
   }
 
-  function fishFight(action) {
-    const F = FreshwaterFishing;
-    const g = state.fish;
-    if (!g || g.phase !== "fight" || !g.fight || !g.pending) return;
-    g.fight = F.fightAction(g.fight, action);
-    if (g.fight.snapped) {
-      setFishMsg("SNAP!  YOUR LINE BROKE.", "err");
-      fishAfterCast();
+  function enterWumpusPath() {
+    const g = state.wumpus;
+    if (!g || (g.phase !== "shoot" && g.phase !== "play")) return;
+    g.phase = "path";
+    g.path = [];
+    renderWumpusControls();
+  }
+
+  function cancelWumpusShoot() {
+    const g = state.wumpus;
+    if (!g || (g.phase !== "shoot" && g.phase !== "path")) return;
+    g.phase = "play";
+    g.path = [];
+    setWumpusMsg(wumpusPrompt());
+    renderWumpusControls();
+  }
+
+  function wumpusAddPath(room) {
+    const W = HuntTheWumpus;
+    const g = state.wumpus;
+    if (!g || g.phase !== "path") return;
+    if (!W.validAimRoom(g.path, room)) {
+      appendDoorLog("ARROWS AREN'T THAT CROOKED - TRY ANOTHER ROOM");
+      setWumpusMsg("ARROWS AREN'T THAT CROOKED.  " + wumpusPrompt());
       return;
     }
-    if (g.fight.lost) {
-      setFishMsg("HE THREW THE HOOK!", "err");
-      fishAfterCast();
+    if (g.path.length >= W.MAX_PATH) return;
+    g.path.push(room);
+    if (g.path.length >= W.MAX_PATH) setWumpusMsg(wumpusPrompt());
+    renderWumpusControls();
+  }
+
+  function wumpusFire(path) {
+    const g = state.wumpus;
+    if (!g || !g.game || (g.phase !== "shoot" && g.phase !== "path")) return;
+    const res = HuntTheWumpus.shoot(g.game, path);
+    if (!res.ok) return;
+    (res.messages || []).forEach((line) => appendDoorLog(line));
+    if (res.over) {
+      endWumpus(res.win);
       return;
     }
-    if (g.fight.landed) {
-      const recs = F.loadRecords();
-      const best = F.updateRecords(recs, g.pending.species.name, g.pending.ounces, g.lake.name);
-      if (best) F.saveRecords(recs);
-      g.catch.push({ species: g.pending.species.name, ounces: g.pending.ounces, lake: g.lake.name });
-      setFishMsg("YOU CAUGHT A " + F.formatWeight(g.pending.ounces) + " " + g.pending.species.name + "!" + (best ? "  A NEW PERSONAL BEST!" : ""), "ok");
-      fishAfterCast();
-      return;
+    showWumpusTurn();
+  }
+
+  function endWumpus(win) {
+    const g = state.wumpus;
+    if (!g) return;
+    g.phase = "over";
+    g.path = [];
+    renderWumpusControls();
+  }
+
+  function handleWumpusDigit(digit) {
+    const g = state.wumpus;
+    if (!g || (g.phase !== "play" && g.phase !== "shoot" && g.phase !== "path")) return false;
+    const rooms = offeredWumpusRooms();
+    if (!rooms.length) return false;
+    if (g.digitTimer) {
+      clearTimeout(g.digitTimer);
+      g.digitTimer = 0;
     }
-    fishRenderFight();
+    g.digitBuf = (g.digitBuf || "") + digit;
+    const buf = g.digitBuf;
+    const n = Number(buf);
+    const exact = rooms.indexOf(n) >= 0;
+    const prefix = rooms.some((room) => String(room).indexOf(buf) === 0 && String(room) !== buf);
+    const take = function (room) {
+      g.digitBuf = "";
+      if (g.phase === "play") wumpusMove(room);
+      else if (g.phase === "shoot") wumpusFire([room]);
+      else wumpusAddPath(room);
+    };
+    if (exact && !prefix) {
+      take(n);
+      return true;
+    }
+    if (buf.length >= 2) {
+      g.digitBuf = "";
+      if (exact) take(n);
+      else setWumpusMsg("NOT POSSIBLE.  " + wumpusPrompt());
+      return true;
+    }
+    g.digitTimer = setTimeout(() => {
+      const cur = state.wumpus;
+      if (!cur) return;
+      const val = Number(cur.digitBuf);
+      cur.digitBuf = "";
+      cur.digitTimer = 0;
+      if (rooms.indexOf(val) >= 0) take(val);
+    }, 700);
+    return true;
   }
 
   function appendLemonPre(text, cls) {
@@ -1222,7 +1190,7 @@
     const L = LemonadeStand;
     hideAceyForms();
     hideLemonForms();
-    hideFishPanel();
+    hideWumpusPanel();
     state.acey = null;
     state.lemon = { day: 0, assets: L.START_CENTS, phase: "intro" };
     const log = $("door-log");
@@ -1537,7 +1505,7 @@
 
   function go(name, productId) {
     cancelType();
-    hideFishPanel();
+    hideWumpusPanel();
     if (name === "door") {
       showDoor(productId || state.doorId || "acey-deucey");
       return;
@@ -1607,12 +1575,6 @@
     }
 
     const typing = isTypingInField(ev.target);
-
-    if (!typing && state.view === "door" && state.doorId === "freshwater-fishing" && state.fish && state.fish.phase === "boat" && (key === "ArrowDown" || key === "ArrowUp" || key === "ArrowLeft" || key === "ArrowRight")) {
-      ev.preventDefault();
-      moveFishBoat(key);
-      return;
-    }
 
     if ((key === "ArrowDown" || key === "ArrowUp") && !typing) {
       const panel = panels[state.view];
@@ -1730,49 +1692,51 @@
         ev.preventDefault();
         dealAceyHand();
       }
-      if (state.doorId === "freshwater-fishing" && state.fish) {
-        if (state.fish.phase === "intro" && (key === "Enter" || key === " ")) {
+      if (state.doorId === "hunt-the-wumpus" && state.wumpus) {
+        const phase = state.wumpus.phase;
+        if ((phase === "intro" || phase === "instruct") && (k === "H" || key === "Enter" || key === " ")) {
           ev.preventDefault();
-          fishChooseLake();
+          beginWumpus(false);
           return;
         }
-        if (state.fish.phase === "lake" && (k === "1" || k === "2")) {
+        if (phase === "intro" && k === "I") {
           ev.preventDefault();
-          const lake = FreshwaterFishing.LAKES[Number(k) - 1];
-          if (lake) fishLaunch(lake.id);
+          showWumpusInstructions();
           return;
         }
-        if (state.fish.phase === "lure" && (k === "1" || k === "2" || k === "3" || k === "4")) {
+        if (phase === "play" && k === "S") {
           ev.preventDefault();
-          const lure = FreshwaterFishing.LURES[Number(k) - 1];
-          if (lure) {
-            state.fish.lureId = lure.id;
-            state.fish.speed = FreshwaterFishing.autoSpeed(lure);
-            FreshwaterFishing.saveLure(lure.id);
-            state.fish.phase = "boat";
-            renderFishView();
-            setFishMsg("TIED ON A " + lure.name + ".  " + fishPrompt());
-            showFishBoatControls();
-          }
+          enterWumpusShoot();
           return;
         }
-        if (state.fish.phase === "boat" && k === "C") {
+        if (phase === "shoot" && k === "L") {
           ev.preventDefault();
-          fishCast();
+          enterWumpusPath();
           return;
         }
-        if (state.fish.phase === "hook" && (key === "Enter" || key === " " || k === "H")) {
+        if ((phase === "shoot" || phase === "path") && k === "C") {
           ev.preventDefault();
-          fishSetHook(true);
+          cancelWumpusShoot();
           return;
         }
-        if (state.fish.phase === "fight") {
-          if (k === "R") { ev.preventDefault(); fishFight("reel"); return; }
-          if (k === "S" || k === "G") { ev.preventDefault(); fishFight("slack"); return; }
-        }
-        if (state.fish.phase === "dayend" && (k === "Y" || key === "Enter")) {
+        if (phase === "path" && (k === "F" || key === "Enter")) {
           ev.preventDefault();
-          startFishing();
+          if (state.wumpus.path && state.wumpus.path.length) wumpusFire(state.wumpus.path);
+          return;
+        }
+        if (phase === "over" && k === "Y") {
+          ev.preventDefault();
+          beginWumpus(true);
+          return;
+        }
+        if (phase === "over" && k === "N") {
+          ev.preventDefault();
+          beginWumpus(false);
+          return;
+        }
+        if ((phase === "play" || phase === "shoot" || phase === "path") && k >= "0" && k <= "9") {
+          ev.preventDefault();
+          handleWumpusDigit(k);
           return;
         }
       }

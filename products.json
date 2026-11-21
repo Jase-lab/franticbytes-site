@@ -21,11 +21,11 @@
       "blurb": "Run a lemonade stand in Lemonsville for 30 days."
     },
     {
-      "id": "freshwater-fishing",
+      "id": "hunt-the-wumpus",
       "key": "3",
-      "name": "Freshwater Fishing",
+      "name": "Hunt the Wumpus",
       "status": "open",
-      "blurb": "Motor out, read the depth, and see what's biting."
+      "blurb": "Hunt the Wumpus through a cave of 20 rooms."
     }
   ],
   "products": [

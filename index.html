@@ -35,11 +35,11 @@
         "blurb": "Run a lemonade stand in Lemonsville for 30 days."
       },
       {
-        "id": "freshwater-fishing",
+        "id": "hunt-the-wumpus",
         "key": "3",
-        "name": "Freshwater Fishing",
+        "name": "Hunt the Wumpus",
         "status": "open",
-        "blurb": "Motor out, read the depth, and see what's biting."
+        "blurb": "Hunt the Wumpus through a cave of 20 rooms."
       }
     ],
     "products": [
@@ -193,12 +193,9 @@
               </div>
             </form>
             <div id="lemon-actions" class="intro-actions" hidden></div>
-            <div id="fish-panel" hidden>
-              <pre id="fish-status" class="fish-status"></pre>
-              <pre id="fish-map" class="fish-map" aria-live="polite"></pre>
-              <pre id="fish-legend" class="fish-legend"></pre>
-              <div id="fish-msg" class="fish-msg" aria-live="polite"></div>
-              <div id="fish-controls"></div>
+            <div id="wumpus-panel" hidden>
+              <div id="wumpus-msg" class="wumpus-msg" aria-live="polite"></div>
+              <div id="wumpus-controls"></div>
             </div>
             <nav class="menu" id="door-nav" aria-label="Door navigation"></nav>
           </section>
@@ -241,7 +238,7 @@
               </ul>
               <p class="dim">If a link is missing, that build has not been uploaded yet.</p>
               <h3>Doors</h3>
-              <p>Online door games live in the Doors area. Acey Deucey, Lemonade Stand, and Freshwater Fishing are on bays 1 to 3 when JavaScript is on.</p>
+              <p>Online door games live in the Doors area. Acey Deucey, Lemonade Stand, and Hunt the Wumpus are on bays 1 to 3 when JavaScript is on.</p>
             </section>
           </noscript>
         </main>
@@ -281,7 +278,7 @@
       <li><kbd>S</kbd> — skip handshake to the main menu</li>
       <li>On the main menu: <kbd>W</kbd> Write65, <kbd>F</kbd> Files, <kbd>D</kbd> Doors, <kbd>A</kbd> About, <kbd>G</kbd> Goodbye</li>
       <li><kbd>1</kbd>–<kbd>4</kbd> — pick a file in Files</li>
-      <li>In Doors: <kbd>1</kbd> Acey Deucey, <kbd>2</kbd> Lemonade Stand, <kbd>3</kbd> Freshwater Fishing. In a door: <kbd>Q</kbd> back to Doors</li>
+      <li>In Doors: <kbd>1</kbd> Acey Deucey, <kbd>2</kbd> Lemonade Stand, <kbd>3</kbd> Hunt the Wumpus. In a door: <kbd>Q</kbd> back to Doors</li>
       <li><kbd>?</kbd> — this help</li>
     </ul>
     <p class="dim">Everything is also a button or a link. Tab, enter, and touch all work.</p>
@@ -292,7 +289,7 @@
 
   <script src="js/acey.js" defer></script>
   <script src="js/lemonade.js" defer></script>
-  <script src="js/fishing.js" defer></script>
+  <script src="js/wumpus.js" defer></script>
   <script src="js/app.js" defer></script>
 </body>
 </html>
