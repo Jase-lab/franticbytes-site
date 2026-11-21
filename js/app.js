@@ -1732,7 +1732,6 @@
   }
 
   async function showGoodbye() {
-    newNode();
     showPanel("goodbye");
     setHash("#/goodbye");
     const log = $("goodbye-log");
