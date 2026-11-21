@@ -3,8 +3,10 @@
   "use strict";
 
   const CASTS_PER_DAY = 8;
-  const HOOK_MS = { NIBBLE: 1500, STRIKE: 1100 };
+  const HOOK_MS = { NIBBLE: 4000, STRIKE: 4000 };
+  const HOOK_WINDOW = 4000;
   const LS_RECORDS = "fb_fish_records";
+  const LS_LURE = "fb_fish_lure";
 
   const TILES = {
     "#": { land: true, ch: "#" },
@@ -55,15 +57,10 @@
   ];
 
   const LURES = [
-    { id: "worm4", name: "4\" PLASTIC WORM", type: "worm", size: "small" },
-    { id: "worm7", name: "7\" PLASTIC WORM", type: "worm", size: "large" },
-    { id: "jig18", name: "1/8 OZ JIG", type: "jig", size: "small" },
-    { id: "jig14", name: "1/4 OZ JIG", type: "jig", size: "medium" },
-    { id: "spinS", name: "SMALL SPINNER", type: "spinner", size: "small" },
-    { id: "spinL", name: "LARGE SPINNER", type: "spinner", size: "large" },
-    { id: "crankS", name: "SHALLOW CRANKBAIT", type: "crank", size: "medium" },
-    { id: "crankD", name: "DEEP CRANKBAIT", type: "crank", size: "large" },
-    { id: "spoonM", name: "MEDIUM SPOON", type: "spoon", size: "medium" }
+    { id: "worm", name: "WORM", type: "worm", size: "medium" },
+    { id: "jig", name: "JIG", type: "jig", size: "small" },
+    { id: "spinner", name: "SPINNER", type: "spinner", size: "large" },
+    { id: "crank", name: "CRANKBAIT", type: "crank", size: "medium" }
   ];
 
   const SPEEDS = ["SLOW", "MEDIUM", "FAST"];
@@ -130,6 +127,27 @@
     return LURES[0];
   }
 
+  function loadLure(storage) {
+    try {
+      const raw = (storage || (typeof localStorage !== "undefined" ? localStorage : null));
+      if (!raw) return "";
+      const id = raw.getItem(LS_LURE);
+      if (!id) return "";
+      const lure = lureById(id);
+      return lure && lure.id === id ? id : "";
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function saveLure(id, storage) {
+    try {
+      const raw = (storage || (typeof localStorage !== "undefined" ? localStorage : null));
+      if (!raw) return;
+      raw.setItem(LS_LURE, id);
+    } catch (e) { /* ignore */ }
+  }
+
   function speciesScore(species, cell, lure, speed) {
     let w = species.rarity * 0.2;
     if (cell.depth >= species.depth[0] && cell.depth <= species.depth[1]) w += 0.28;
@@ -152,7 +170,7 @@
       scores.push(s);
       total += s;
     }
-    const pBite = Math.min(0.82, 0.12 + total * 0.22);
+    const pBite = Math.min(0.93, 0.62 + total * 0.15);
     if (rng(rand) > pBite) return { bite: false, chance: pBite };
     let pick = rng(rand) * total;
     let idx = 0;
@@ -165,7 +183,7 @@
     const span = sp.oz[1] - sp.oz[0];
     const ounces = sp.oz[0] + Math.floor(rng(rand) * (span + 1));
     const kind = rng(rand) < 0.45 ? "NIBBLE" : "STRIKE";
-    return { bite: true, kind: kind, species: sp, ounces: ounces, chance: pBite, window: HOOK_MS[kind] };
+    return { bite: true, kind: kind, species: sp, ounces: ounces, chance: pBite, window: HOOK_WINDOW };
   }
 
   function hookHit(reactMs, windowMs) {
@@ -173,8 +191,22 @@
   }
 
   function startFight(ounces) {
-    const needed = 3 + Math.min(5, Math.floor(ounces / 32));
+    const needed = ounces >= 96 ? 4 : 3;
     return { tension: 2, progress: 0, needed: needed, snapped: false, lost: false, landed: false };
+  }
+
+  function fightHint(tension) {
+    if (tension >= 4) return "TOO TIGHT - GIVE SLACK!";
+    return "PRESS R TO REEL.";
+  }
+
+  function autoSpeed(lure) {
+    if (lure && (lure.type === "worm" || lure.type === "jig")) return "SLOW";
+    return "MEDIUM";
+  }
+
+  function mapLegend() {
+    return "B YOU   ~ WATER   w WEEDS   o ROCKS\n\\ DROP-OFF   . SAND   = DOCK\nFISH LIKE WEEDS AND DROP-OFFS";
   }
 
   function tensionLabel(t) {
@@ -205,43 +237,31 @@
       note: ""
     };
     const run = rng(rand);
-    if (run < 0.3) {
+    if (run < 0.15) {
       next.tension += 1;
       next.note = "THE FISH IS RUNNING!";
-    } else if (run < 0.42) {
-      next.tension += 2;
-      next.note = "HARD RUN!  LINE IS SCREAMING!";
-    } else if (run > 0.88) {
-      next.tension = Math.max(0, next.tension - 1);
-      next.note = "HE'S TIRING.";
     }
     if (action === "reel") {
-      if (next.tension >= 4) {
+      if (next.tension >= 5) {
         next.tension += 1;
-        next.note = "TOO MUCH PRESSURE!";
+        next.note = "TOO TIGHT - GIVE SLACK!";
       } else {
         next.progress += 1;
         next.tension += 1;
-        if (!next.note) next.note = "YOU GAIN SOME LINE.";
+        next.note = next.tension >= 4 ? "TOO TIGHT - GIVE SLACK!" : "YOU GAIN SOME LINE.";
       }
     } else if (action === "slack") {
-      next.tension -= 2;
-      if (next.tension < 0) {
-        next.tension = 0;
-        if (rng(rand) < 0.4) {
-          next.lost = true;
-          next.note = "HE THREW THE HOOK!";
-        } else if (!next.note) next.note = "YOU GAVE TOO MUCH SLACK.";
-      } else if (!next.note) next.note = "YOU GAVE HIM SLACK.";
+      next.tension = Math.max(1, next.tension - 2);
+      next.note = "LINE IS STEADY.  PRESS R TO REEL.";
     }
-    if (next.tension >= 5) {
+    next.note = next.note || fightHint(next.tension);
+    if (next.tension >= 7) {
       next.snapped = true;
       next.lost = false;
       next.landed = false;
       next.note = "SNAP!  YOUR LINE BROKE.";
       return next;
     }
-    if (next.lost) return next;
     if (next.progress >= next.needed) {
       next.landed = true;
       next.note = "YOU GOT HIM TO THE BOAT!";
@@ -259,7 +279,7 @@
   }
 
   function renderMap(lake, boatX, boatY, heading) {
-    const ch = HEADING_CH[heading] || "B";
+    const ch = "B";
     const lines = [];
     let y;
     for (y = 0; y < lake.rows.length; y++) {
@@ -308,6 +328,8 @@
   const api = {
     CASTS_PER_DAY: CASTS_PER_DAY,
     HOOK_MS: HOOK_MS,
+    HOOK_WINDOW: HOOK_WINDOW,
+    LS_LURE: LS_LURE,
     LS_RECORDS: LS_RECORDS,
     TILES: TILES,
     LAKES: LAKES,
@@ -319,6 +341,11 @@
     findDock: findDock,
     moveBoat: moveBoat,
     lureById: lureById,
+    loadLure: loadLure,
+    saveLure: saveLure,
+    autoSpeed: autoSpeed,
+    mapLegend: mapLegend,
+    fightHint: fightHint,
     speciesScore: speciesScore,
     rollBite: rollBite,
     hookHit: hookHit,

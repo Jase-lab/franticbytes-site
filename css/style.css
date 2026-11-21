@@ -673,7 +673,8 @@ body.pre-login .status-bar { visibility: hidden; }
 .lemon-report { color: var(--green); }
 
 .fish-status,
-.fish-map {
+.fish-map,
+.fish-legend {
   margin: 0.35rem 0 0.2rem;
   padding: 0;
   max-width: 100%;
@@ -689,18 +690,50 @@ body.pre-login .status-bar { visibility: hidden; }
 }
 .fish-status { color: var(--cyan); margin-bottom: 0.15rem; }
 .fish-map { color: var(--green); text-shadow: var(--glow); }
-.fish-msg { min-height: 1.4em; margin: 0.4rem 0; color: var(--amber); text-shadow: 0 0 8px rgba(255, 191, 60, 0.4); }
+.fish-legend { color: var(--dim); text-shadow: none; margin-top: 0.15rem; font-size: clamp(10px, 3.1vw, 16px); }
+.fish-msg {
+  min-height: 1.6em;
+  margin: 0.55rem 0 0.35rem;
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255, 191, 60, 0.4);
+  letter-spacing: 0.04em;
+}
+.fish-msg.now {
+  color: var(--amber);
+  font-size: 1.15em;
+  animation: fish-flash 0.7s steps(1) infinite;
+}
+.fish-msg.ok { color: var(--green); animation: none; }
+.fish-msg.err { color: var(--red); animation: none; }
+@keyframes fish-flash {
+  50% { opacity: 0.25; }
+}
 .fish-pad {
   display: grid;
-  grid-template-columns: 3.2rem 3.2rem 3.2rem;
-  grid-template-rows: 3.2rem 3.2rem 3.2rem;
-  gap: 0.3rem;
+  grid-template-columns: 3.4rem 3.4rem 3.4rem;
+  grid-template-rows: 3.4rem 3.4rem;
+  gap: 0.35rem;
   justify-content: start;
-  margin: 0.6rem 0 0.4rem;
+  margin: 0.5rem 0 0.5rem;
 }
-.fish-pad .btn { min-height: 44px; min-width: 44px; justify-content: center; padding: 0.3rem; }
+.fish-pad .btn { min-height: 52px; min-width: 52px; justify-content: center; padding: 0.3rem; }
 #fish-up { grid-column: 2; grid-row: 1; }
 #fish-left { grid-column: 1; grid-row: 2; }
 #fish-down { grid-column: 2; grid-row: 2; }
 #fish-right { grid-column: 3; grid-row: 2; }
-.fish-cmd { margin-top: 0.3rem; }
+.fish-cmd { margin-top: 0.2rem; }
+.fish-cmd .btn,
+#fish-hook,
+#fish-reel,
+#fish-slack,
+#fish-continue,
+#fish-again {
+  min-height: 52px;
+  width: 100%;
+  max-width: 22rem;
+  justify-content: center;
+}
+#fish-hook { min-height: 68px; font-size: 1.1em; }
+@media (prefers-reduced-motion: reduce) {
+  .fish-msg.now { animation: none; }
+}
