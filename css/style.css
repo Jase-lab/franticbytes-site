@@ -722,12 +722,36 @@ body.pre-login .status-bar { visibility: hidden; }
   color: var(--red);
 }
 
+.sysop-types {
+  border: 0;
+  margin: 0.8rem 0 0;
+  padding: 0;
+}
+.sysop-types legend {
+  padding: 0;
+  color: inherit;
+}
+.sysop-types .menu { margin-top: 0.4rem; }
+
+.menu-item[aria-pressed="true"] {
+  background: var(--green);
+  color: var(--screen);
+  text-shadow: none;
+  border-color: var(--green);
+}
+.menu-item[aria-pressed="true"] kbd {
+  color: #1a1000;
+  border-color: #1a1000;
+  text-shadow: none;
+}
+
 .sysop-body-row {
   max-width: 100%;
   align-items: flex-start;
 }
 
-#sysop-input,
+#sysop-name,
+#sysop-email,
 #sysop-body,
 .sysop-static-form input,
 .sysop-static-form select,
@@ -752,7 +776,6 @@ body.pre-login .status-bar { visibility: hidden; }
 }
 
 #sysop-form label,
-#sysop-body-form label,
 .sysop-static-form label {
   display: block;
   margin-top: 0.8rem;

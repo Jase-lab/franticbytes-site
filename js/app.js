@@ -1431,15 +1431,15 @@
 
   const SYSOP_TYPES = [
     { key: "1", id: "bug-report", label: "Bug Report" },
-    { key: "2", id: "feedback", label: "Feedback" },
+    { key: "2", id: "support-request", label: "Support Request" },
     { key: "3", id: "enhancement-request", label: "Enhancement Request" },
     { key: "4", id: "something-else", label: "Something Else" },
   ];
-  const SYSOP_LIMITS = { name: 80, email: 120, subject: 80, message: 4000 };
+  const SYSOP_LIMITS = { name: 80, email: 120, message: 4000 };
   const SYSOP_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function emptySysopDraft() {
-    return { step: "type", type: "", typeLabel: "", name: "", email: "", subject: "", message: "" };
+    return { step: "form", type: "", name: "", email: "", message: "" };
   }
 
   function sysopTypeById(id) {
@@ -1447,48 +1447,7 @@
   }
 
   function sysopHoneypot() {
-    const a = $("sysop-fax") ? $("sysop-fax").value : "";
-    const b = $("sysop-fax-body") ? $("sysop-fax-body").value : "";
-    return (a + b).trim();
-  }
-
-  function hideSysopParts() {
-    const lead = $("sysop-lead");
-    const review = $("sysop-review");
-    const status = $("sysop-status");
-    const choices = $("sysop-choices");
-    const form = $("sysop-form");
-    const bodyForm = $("sysop-body-form");
-    const skip = $("sysop-skip");
-    const input = $("sysop-input");
-    const body = $("sysop-body");
-    const hint = $("sysop-body-hint");
-    if (lead) lead.hidden = true;
-    if (review) {
-      review.hidden = true;
-      review.textContent = "";
-    }
-    if (status) {
-      status.hidden = true;
-      status.textContent = "";
-      status.classList.remove("err");
-    }
-    if (choices) {
-      choices.hidden = true;
-      choices.innerHTML = "";
-    }
-    if (form) form.hidden = true;
-    if (bodyForm) bodyForm.hidden = true;
-    if (skip) skip.hidden = true;
-    if (hint) hint.textContent = "";
-    if (input) {
-      input.value = "";
-      input.type = "text";
-      input.removeAttribute("inputmode");
-      input.autocomplete = "off";
-      input.spellcheck = false;
-    }
-    if (body) body.value = "";
+    return ($("sysop-fax") ? $("sysop-fax").value : "").trim();
   }
 
   function setSysopStatus(text, isError) {
@@ -1505,263 +1464,118 @@
     status.classList.toggle("err", !!isError);
   }
 
-  function renderSysopNav(items) {
-    const nav = $("sysop-nav");
-    if (!nav) return;
-    const buttons = (items || []).map((item) => {
-      if (item.go) {
-        return `<button type="button" class="menu-item" data-go="${escapeHtml(item.go)}"><kbd>${escapeHtml(item.key)}</kbd> <span>${escapeHtml(item.label)}</span></button>`;
-      }
-      return `<button type="button" class="menu-item" data-sysop="${escapeHtml(item.act)}"><kbd>${escapeHtml(item.key)}</kbd> <span>${escapeHtml(item.label)}</span></button>`;
-    });
-    buttons.push(`<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`);
-    nav.innerHTML = buttons.join("");
-  }
-
   function focusSysop(el) {
     if (el && typeof el.focus === "function") el.focus();
   }
 
+  function sysopMarkType(id) {
+    const draft = state.sysop;
+    if (!draft) return;
+    const t = sysopTypeById(id);
+    if (!t) return;
+    draft.type = t.id;
+    document.querySelectorAll("#sysop-choices [data-sysop-type]").forEach((btn) => {
+      const on = btn.dataset.sysopType === t.id;
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
   function renderSysop() {
     const draft = state.sysop || emptySysopDraft();
-    hideSysopParts();
     const lead = $("sysop-lead");
-    const choices = $("sysop-choices");
-    const form = $("sysop-form");
-    const label = $("sysop-input-label");
-    const input = $("sysop-input");
-    const skip = $("sysop-skip");
-    const bodyForm = $("sysop-body-form");
-    const bodyLabel = $("sysop-body-label");
-    const bodyHint = $("sysop-body-hint");
-    const body = $("sysop-body");
     const review = $("sysop-review");
+    const form = $("sysop-form");
+    const done = draft.step === "done";
 
-    if (draft.step === "type") {
-      if (lead) {
-        lead.hidden = false;
-        lead.textContent = "Leave a private note for Lord Frazzle. Your handle is already on the message.";
-      }
-      if (choices) {
-        choices.hidden = false;
-        SYSOP_TYPES.forEach((t) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "menu-item";
-          btn.dataset.sysop = "type";
-          btn.dataset.type = t.id;
-          btn.innerHTML = `<kbd>${t.key}</kbd> <span>${escapeHtml(t.label)}</span>`;
-          choices.appendChild(btn);
-        });
-        const abort = document.createElement("button");
-        abort.type = "button";
-        abort.className = "menu-item";
-        abort.dataset.go = "menu";
-        abort.innerHTML = `<kbd>Q</kbd> <span>Abort, back to Main Menu</span>`;
-        choices.appendChild(abort);
-      }
-      renderSysopNav();
-      focusSysop(choices && choices.querySelector(".menu-item"));
-      return;
+    if (lead) {
+      lead.hidden = false;
+      lead.textContent = done
+        ? "MESSAGE SAVED."
+        : "Leave a private note for Lord Frazzle. Your handle is already on the message.";
     }
-
-    if (draft.step === "name" || draft.step === "email" || draft.step === "subject") {
-      form.hidden = false;
-      if (draft.step === "name") {
-        label.textContent = "REAL NAME (OPTIONAL — PRESS ENTER TO SKIP):";
-        input.maxLength = SYSOP_LIMITS.name;
-        input.autocomplete = "name";
-        input.value = draft.name;
-        skip.hidden = false;
-      } else if (draft.step === "email") {
-        label.textContent = "EMAIL (OPTIONAL — PRESS ENTER TO SKIP):";
-        input.type = "email";
-        input.maxLength = SYSOP_LIMITS.email;
-        input.autocomplete = "email";
-        input.value = draft.email;
-        skip.hidden = false;
-      } else {
-        label.textContent = "SUBJECT:";
-        input.maxLength = SYSOP_LIMITS.subject;
-        input.autocomplete = "off";
-        input.value = draft.subject;
-      }
-      renderSysopNav([{ act: "abort", key: "Q", label: "Abort, back to Main Menu" }]);
-      focusSysop(input);
-      return;
-    }
-
-    if (draft.step === "body") {
-      bodyForm.hidden = false;
-      bodyLabel.textContent = "ENTER YOUR MESSAGE BELOW.";
-      if (bodyHint) bodyHint.textContent = "WHEN YOU ARE DONE, TAP SAVE (OR TYPE /S ON THE LAST LINE).";
-      body.value = draft.message;
-      renderSysopNav([{ act: "abort", key: "Q", label: "Abort, back to Main Menu" }]);
-      focusSysop(body);
-      return;
-    }
-
-    if (draft.step === "confirm") {
-      if (lead) {
-        lead.hidden = false;
-        lead.textContent = "READY TO SEND THIS TO THE SYSOP?";
-      }
-      if (review) {
-        review.hidden = false;
-        const name = draft.name || "(none)";
-        const email = draft.email || "(none)";
-        review.textContent = [
-          `FROM    ${greetName()}`,
-          `NAME    ${name}`,
-          `EMAIL   ${email}`,
-          `TYPE    ${draft.typeLabel.toUpperCase()}`,
-          `SUBJ    ${draft.subject}`,
-          "",
-          draft.message,
-        ].join("\n");
-      }
-      if (choices) {
-        choices.hidden = false;
-        const items = [
-          { act: "save", key: "Y", label: "Save message" },
-          { act: "restart", key: "N", label: "Start over" },
-          { go: "menu", key: "Q", label: "Abort, back to Main Menu" },
-        ];
-        items.forEach((item) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "menu-item";
-          if (item.go) btn.dataset.go = item.go;
-          else btn.dataset.sysop = item.act;
-          btn.innerHTML = `<kbd>${item.key}</kbd> <span>${escapeHtml(item.label)}</span>`;
-          choices.appendChild(btn);
-        });
-      }
-      renderSysopNav();
-      focusSysop(choices && choices.querySelector(".menu-item"));
-      return;
-    }
-
-    if (draft.step === "done") {
-      if (lead) {
-        lead.hidden = false;
-        lead.textContent = "MESSAGE SAVED.";
-      }
-      if (review) {
+    if (review) {
+      if (done) {
         review.hidden = false;
         review.textContent = "IT HAS BEEN FILED IN THE SYSOP MAILBOX.\nLORD FRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.";
+      } else {
+        review.hidden = true;
+        review.textContent = "";
       }
-      renderSysopNav();
-      focusSysop($("sysop-nav") && $("sysop-nav").querySelector(".menu-item"));
-      return;
     }
-
-    if (draft.step === "error") {
-      if (lead) {
-        lead.hidden = false;
-        lead.textContent = "THE BOARD COULD NOT FILE THAT MESSAGE.";
-      }
-      setSysopStatus("YOU CAN TRY AGAIN, OR GO BACK TO THE MAIN MENU.", true);
-      renderSysopNav([
-        { act: "retry", key: "Y", label: "Try again" },
-        { go: "menu", key: "Q", label: "Abort, back to Main Menu" },
-      ]);
+    if (form) form.hidden = done;
+    if (!done) {
+      setSysopStatus("");
+      if ($("sysop-name")) $("sysop-name").value = draft.name;
+      if ($("sysop-email")) $("sysop-email").value = draft.email;
+      if ($("sysop-body")) $("sysop-body").value = draft.message;
+      document.querySelectorAll("#sysop-choices [data-sysop-type]").forEach((btn) => {
+        const on = !!draft.type && btn.dataset.sysopType === draft.type;
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+      const first = $("sysop-choices") && $("sysop-choices").querySelector(".menu-item");
+      focusSysop(first);
+    } else {
+      setSysopStatus("");
       focusSysop($("sysop-nav") && $("sysop-nav").querySelector(".menu-item"));
     }
   }
 
   function showSysop() {
     state.sysop = emptySysopDraft();
+    if ($("sysop-form")) $("sysop-form").reset();
     showPanel("sysop");
     setHash("#/sysop");
     renderSysop();
   }
 
-  function sysopPickType(id) {
-    const t = sysopTypeById(id);
-    if (!t || !state.sysop) return;
-    state.sysop.type = t.id;
-    state.sysop.typeLabel = t.label;
-    state.sysop.step = "name";
-    renderSysop();
-  }
-
-  function sysopAdvanceFrom(step, raw) {
-    const draft = state.sysop;
-    if (!draft) return;
-    const value = String(raw || "").trim();
-    if (step === "name") {
-      if (value.length > SYSOP_LIMITS.name) {
-        setSysopStatus("THAT NAME IS TOO LONG.", true);
-        return;
-      }
-      draft.name = value.slice(0, SYSOP_LIMITS.name);
-      draft.step = "email";
-      renderSysop();
-      return;
-    }
-    if (step === "email") {
-      if (value.length > SYSOP_LIMITS.email) {
-        setSysopStatus("THAT EMAIL IS TOO LONG.", true);
-        return;
-      }
-      if (value && !SYSOP_EMAIL_RE.test(value)) {
-        setSysopStatus("THAT EMAIL DOES NOT LOOK RIGHT. TRY AGAIN, OR PRESS ENTER TO SKIP.", true);
-        return;
-      }
-      draft.email = value.slice(0, SYSOP_LIMITS.email);
-      draft.step = "subject";
-      renderSysop();
-      return;
-    }
-    if (step === "subject") {
-      if (!value) {
-        setSysopStatus("A SUBJECT IS REQUIRED.", true);
-        return;
-      }
-      if (value.length > SYSOP_LIMITS.subject) {
-        setSysopStatus("THAT SUBJECT IS TOO LONG.", true);
-        return;
-      }
-      draft.subject = value.slice(0, SYSOP_LIMITS.subject);
-      draft.step = "body";
-      renderSysop();
-    }
-  }
-
-  function stripSysopSave(text) {
-    const lines = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-    if (lines.length && /^\s*\/S\s*$/i.test(lines[lines.length - 1])) lines.pop();
-    return lines.join("\n").trim();
-  }
-
-  function sysopSubmitBody(raw) {
-    const draft = state.sysop;
-    if (!draft) return;
-    const message = stripSysopSave(raw);
-    if (!message) {
-      setSysopStatus("A MESSAGE IS REQUIRED.", true);
-      return;
-    }
-    if (message.length > SYSOP_LIMITS.message) {
-      setSysopStatus("THAT MESSAGE IS TOO LONG.", true);
-      return;
-    }
-    draft.message = message;
-    draft.step = "confirm";
-    renderSysop();
+  function readSysopForm() {
+    const draft = state.sysop || emptySysopDraft();
+    draft.name = ($("sysop-name") ? $("sysop-name").value : "").trim();
+    draft.email = ($("sysop-email") ? $("sysop-email").value : "").trim();
+    draft.message = ($("sysop-body") ? $("sysop-body").value : "").trim();
+    return draft;
   }
 
   async function sysopSave() {
-    const draft = state.sysop;
-    if (!draft || !draft.type || !draft.subject || !draft.message) return;
+    const draft = readSysopForm();
+    state.sysop = draft;
+    if (!sysopTypeById(draft.type)) {
+      setSysopStatus("A MESSAGE TYPE IS REQUIRED.", true);
+      focusSysop($("sysop-choices") && $("sysop-choices").querySelector(".menu-item"));
+      return;
+    }
+    if (draft.name.length > SYSOP_LIMITS.name) {
+      setSysopStatus("THAT NAME IS TOO LONG.", true);
+      focusSysop($("sysop-name"));
+      return;
+    }
+    if (draft.email.length > SYSOP_LIMITS.email) {
+      setSysopStatus("THAT EMAIL IS TOO LONG.", true);
+      focusSysop($("sysop-email"));
+      return;
+    }
+    if (draft.email && !SYSOP_EMAIL_RE.test(draft.email)) {
+      setSysopStatus("THAT EMAIL DOES NOT LOOK RIGHT.", true);
+      focusSysop($("sysop-email"));
+      return;
+    }
+    if (!draft.message) {
+      setSysopStatus("A MESSAGE IS REQUIRED.", true);
+      focusSysop($("sysop-body"));
+      return;
+    }
+    if (draft.message.length > SYSOP_LIMITS.message) {
+      setSysopStatus("THAT MESSAGE IS TOO LONG.", true);
+      focusSysop($("sysop-body"));
+      return;
+    }
+
     setSysopStatus("FILING MESSAGE...");
     const payload = {
       type: draft.type,
       handle: greetName(),
       name: draft.name,
       email: draft.email,
-      subject: draft.subject,
       message: draft.message,
       fax: sysopHoneypot(),
     };
@@ -1778,32 +1592,9 @@
         renderSysop();
         return;
       }
-      draft.step = "error";
-      renderSysop();
-      if (data && data.error) setSysopStatus(String(data.error).toUpperCase(), true);
+      setSysopStatus((data && data.error) ? String(data.error).toUpperCase() : "THE BOARD COULD NOT FILE THAT MESSAGE.", true);
     } catch (_) {
-      draft.step = "error";
-      renderSysop();
-    }
-  }
-
-  function handleSysopAction(act, typeId) {
-    if (!state.sysop) return;
-    if (act === "type") {
-      sysopPickType(typeId);
-      return;
-    }
-    if (act === "abort") {
-      go("menu");
-      return;
-    }
-    if (act === "save") {
-      sysopSave();
-      return;
-    }
-    if (act === "restart" || act === "retry") {
-      state.sysop = emptySysopDraft();
-      renderSysop();
+      setSysopStatus("THE BOARD COULD NOT FILE THAT MESSAGE.", true);
     }
   }
 
@@ -2046,22 +1837,11 @@
       if (k === "W") { ev.preventDefault(); go("product", "write65"); return; }
     }
 
-    if (state.view === "sysop" && state.sysop) {
-      const step = state.sysop.step;
-      if (step === "type") {
-        const picked = SYSOP_TYPES.find((t) => t.key === k);
-        if (picked) { ev.preventDefault(); sysopPickType(picked.id); return; }
-        if (k === "Q") { ev.preventDefault(); go("menu"); return; }
-      } else if (step === "confirm") {
-        if (k === "Y") { ev.preventDefault(); sysopSave(); return; }
-        if (k === "N") { ev.preventDefault(); state.sysop = emptySysopDraft(); renderSysop(); return; }
-        if (k === "Q") { ev.preventDefault(); go("menu"); return; }
-      } else if (step === "error") {
-        if (k === "Y") { ev.preventDefault(); state.sysop = emptySysopDraft(); renderSysop(); return; }
-        if (k === "Q") { ev.preventDefault(); go("menu"); return; }
-      } else if (k === "Q" && !typing) {
+    if (state.view === "sysop" && state.sysop && state.sysop.step !== "done") {
+      const picked = SYSOP_TYPES.find((t) => t.key === k);
+      if (picked && !typing) {
         ev.preventDefault();
-        go("menu");
+        sysopMarkType(picked.id);
         return;
       }
     }
@@ -2212,36 +1992,21 @@
     if (sysopForm) {
       sysopForm.addEventListener("submit", (ev) => {
         ev.preventDefault();
-        if (!state.sysop) return;
-        sysopAdvanceFrom(state.sysop.step, $("sysop-input") ? $("sysop-input").value : "");
+        sysopSave();
       });
     }
-    const sysopSkip = $("sysop-skip");
-    if (sysopSkip) {
-      sysopSkip.addEventListener("click", () => {
-        if (!state.sysop) return;
-        sysopAdvanceFrom(state.sysop.step, "");
-      });
-    }
-    const sysopBodyForm = $("sysop-body-form");
-    if (sysopBodyForm) {
-      sysopBodyForm.addEventListener("submit", (ev) => {
+    const sysopChoices = $("sysop-choices");
+    if (sysopChoices) {
+      sysopChoices.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-sysop-type]");
+        if (!btn) return;
         ev.preventDefault();
-        sysopSubmitBody($("sysop-body") ? $("sysop-body").value : "");
+        if (!state.sysop) state.sysop = emptySysopDraft();
+        sysopMarkType(btn.dataset.sysopType);
       });
-    }
-    const sysopBodyAbort = $("sysop-body-abort");
-    if (sysopBodyAbort) {
-      sysopBodyAbort.addEventListener("click", () => go("menu"));
     }
 
     document.addEventListener("click", (ev) => {
-      const sysopBtn = ev.target.closest("[data-sysop]");
-      if (sysopBtn && !sysopBtn.closest("dialog")) {
-        ev.preventDefault();
-        handleSysopAction(sysopBtn.dataset.sysop, sysopBtn.dataset.type);
-        return;
-      }
       const goBtn = ev.target.closest("[data-go]");
       if (goBtn && !goBtn.closest("dialog")) {
         ev.preventDefault();

@@ -203,39 +203,40 @@
           <section id="sysop" class="panel" hidden>
             <h2>Comment to SysOp</h2>
             <p class="rule" aria-hidden="true">========================================</p>
-            <p id="sysop-lead" class="dim"></p>
+            <p id="sysop-lead" class="dim">Leave a private note for Lord Frazzle. Your handle is already on the message.</p>
             <pre class="log sysop-review" id="sysop-review" hidden></pre>
             <p id="sysop-status" class="sysop-status" hidden></p>
-            <nav class="menu" id="sysop-choices" aria-label="Message type" hidden></nav>
-            <form id="sysop-form" hidden>
-              <label for="sysop-input" id="sysop-input-label"></label>
+            <form id="sysop-form">
+              <fieldset class="sysop-types">
+                <legend>TYPE OF NOTE:</legend>
+                <div class="menu" id="sysop-choices" role="radiogroup" aria-label="Type of note">
+                  <button type="button" class="menu-item" data-sysop-type="bug-report" aria-pressed="false"><kbd>1</kbd> <span>Bug Report</span></button>
+                  <button type="button" class="menu-item" data-sysop-type="support-request" aria-pressed="false"><kbd>2</kbd> <span>Support Request</span></button>
+                  <button type="button" class="menu-item" data-sysop-type="enhancement-request" aria-pressed="false"><kbd>3</kbd> <span>Enhancement Request</span></button>
+                  <button type="button" class="menu-item" data-sysop-type="something-else" aria-pressed="false"><kbd>4</kbd> <span>Something Else</span></button>
+                </div>
+              </fieldset>
+              <label for="sysop-name">REAL NAME (OPTIONAL):</label>
               <div class="prompt-row">
                 <span class="prompt" aria-hidden="true">&gt;</span>
-                <input id="sysop-input" name="sysop-field" type="text" maxlength="80" autocomplete="off" spellcheck="false" enterkeyhint="go">
+                <input id="sysop-name" name="name" type="text" maxlength="80" autocomplete="name" spellcheck="false">
+              </div>
+              <label for="sysop-email">EMAIL (OPTIONAL):</label>
+              <div class="prompt-row">
+                <span class="prompt" aria-hidden="true">&gt;</span>
+                <input id="sysop-email" name="email" type="email" maxlength="120" autocomplete="email" spellcheck="false">
+              </div>
+              <label for="sysop-body">ENTER YOUR MESSAGE BELOW:</label>
+              <div class="prompt-row sysop-body-row">
+                <span class="prompt" aria-hidden="true">&gt;</span>
+                <textarea id="sysop-body" name="message" maxlength="4000" rows="8" autocomplete="off" spellcheck="false" enterkeyhint="enter"></textarea>
               </div>
               <div class="hp-fax" aria-hidden="true">
                 <label for="sysop-fax">Fax number</label>
                 <input id="sysop-fax" name="fax" type="text" tabindex="-1" autocomplete="off">
               </div>
               <div class="intro-actions">
-                <button type="submit" class="btn btn-amber" id="sysop-next">Enter</button>
-                <button type="button" class="btn" id="sysop-skip" hidden>Skip</button>
-              </div>
-            </form>
-            <form id="sysop-body-form" hidden>
-              <label for="sysop-body" id="sysop-body-label"></label>
-              <p id="sysop-body-hint" class="dim"></p>
-              <div class="prompt-row sysop-body-row">
-                <span class="prompt" aria-hidden="true">&gt;</span>
-                <textarea id="sysop-body" name="message" maxlength="4000" rows="8" autocomplete="off" spellcheck="false" enterkeyhint="enter"></textarea>
-              </div>
-              <div class="hp-fax" aria-hidden="true">
-                <label for="sysop-fax-body">Fax number</label>
-                <input id="sysop-fax-body" name="fax" type="text" tabindex="-1" autocomplete="off">
-              </div>
-              <div class="intro-actions">
                 <button type="submit" class="btn btn-amber" id="sysop-save">Save</button>
-                <button type="button" class="btn" id="sysop-body-abort">Abort</button>
               </div>
             </form>
             <nav class="menu" id="sysop-nav" aria-label="Comment to SysOp navigation">
@@ -290,7 +291,7 @@
                 <label for="ns-type">Type of note</label>
                 <select id="ns-type" name="type" required>
                   <option value="bug-report">Bug Report</option>
-                  <option value="feedback">Feedback</option>
+                  <option value="support-request">Support Request</option>
                   <option value="enhancement-request">Enhancement Request</option>
                   <option value="something-else">Something Else</option>
                 </select>
@@ -298,8 +299,6 @@
                 <input id="ns-name" name="name" type="text" maxlength="80" autocomplete="name">
                 <label for="ns-email">Email (optional)</label>
                 <input id="ns-email" name="email" type="email" maxlength="120" autocomplete="email">
-                <label for="ns-subject">Subject</label>
-                <input id="ns-subject" name="subject" type="text" maxlength="80" required>
                 <label for="ns-message">Message</label>
                 <textarea id="ns-message" name="message" maxlength="4000" rows="8" required></textarea>
                 <div class="hp-fax" aria-hidden="true">

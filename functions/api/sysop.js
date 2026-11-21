@@ -1,6 +1,6 @@
 const TYPES = {
   "bug-report": "Bug Report",
-  "feedback": "Feedback",
+  "support-request": "Support Request",
   "enhancement-request": "Enhancement Request",
   "something-else": "Something Else",
 };
@@ -11,12 +11,13 @@ for (const [id, label] of Object.entries(TYPES)) {
   TYPE_ALIASES[label.toLowerCase()] = id;
   TYPE_ALIASES[label.toLowerCase().replace(/\s+/g, "-")] = id;
 }
+TYPE_ALIASES["feedback"] = "support-request";
+
 
 const LIMITS = {
   handle: 24,
   name: 80,
   email: 120,
-  subject: 80,
   message: 4000,
   userAgent: 512,
   bodyBytes: 16384,
@@ -147,7 +148,7 @@ export async function onRequestPost(context) {
     ]);
   }
 
-  if (tooLong(data.name, LIMITS.name) || tooLong(data.email, LIMITS.email) || tooLong(data.subject, LIMITS.subject) || tooLong(data.message, LIMITS.message) || tooLong(data.handle, LIMITS.handle)) {
+  if (tooLong(data.name, LIMITS.name) || tooLong(data.email, LIMITS.email) || tooLong(data.message, LIMITS.message) || tooLong(data.handle, LIMITS.handle)) {
     return reply(request, data, contentType, 413, { ok: false, error: "Message too long." }, [
       "MESSAGE TOO LONG.",
       "SHORTEN THE NOTE AND TRY AGAIN.",
@@ -161,13 +162,7 @@ export async function onRequestPost(context) {
     ]);
   }
 
-  const subject = clipLine(data.subject, LIMITS.subject);
   const message = clipText(data.message, LIMITS.message);
-  if (!subject) {
-    return reply(request, data, contentType, 400, { ok: false, error: "A subject is required." }, [
-      "A SUBJECT IS REQUIRED.",
-    ]);
-  }
   if (!message) {
     return reply(request, data, contentType, 400, { ok: false, error: "A message is required." }, [
       "A MESSAGE IS REQUIRED.",
@@ -197,7 +192,7 @@ export async function onRequestPost(context) {
     await env.DB.prepare(
       "INSERT INTO sysop_messages (created_at, type, handle, name, email, subject, message, user_agent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     )
-      .bind(createdAt, TYPES[typeId], handle || null, name || null, email || null, subject, message, userAgent || null)
+      .bind(createdAt, TYPES[typeId], handle || null, name || null, email || null, "", message, userAgent || null)
       .run();
   } catch {
     return reply(request, data, contentType, 500, { ok: false, error: "The SysOp mailbox is offline." }, [
