@@ -617,6 +617,16 @@
     }
   }
 
+  function hideLemonForms() {
+    const form = $("lemon-form");
+    const actions = $("lemon-actions");
+    if (form) form.hidden = true;
+    if (actions) {
+      actions.hidden = true;
+      actions.innerHTML = "";
+    }
+  }
+
   function aceyCreditsLine() {
     const n = aceyCredits();
     const high = saveAceyHigh(n);
@@ -725,6 +735,7 @@
   }
 
   function startAceyDeucey(reset) {
+    hideLemonForms();
     if (reset || aceyCredits() <= 0) setAceyCredits(AceyDeucey.START);
     else saveAceyHigh(aceyCredits());
     const log = $("door-log");
@@ -754,7 +765,299 @@
     }
     showPanel("door");
     setHash("#/doors/" + door.id);
-    startAceyDeucey(false);
+    if (door.id === "lemonade-stand") startLemonade();
+    else startAceyDeucey(false);
+  }
+
+  function appendLemonPre(text, cls) {
+    const log = $("door-log");
+    if (!log) return;
+    const pre = document.createElement("pre");
+    pre.className = cls;
+    pre.textContent = text;
+    log.appendChild(pre);
+    pre.scrollIntoView({ block: "nearest" });
+  }
+
+  function showLemonActions(html, focusId, onClick) {
+    hideAceyForms();
+    hideLemonForms();
+    const box = $("lemon-actions");
+    if (!box) return;
+    box.hidden = false;
+    box.innerHTML = html;
+    if (typeof onClick === "function") onClick();
+    const focus = focusId && $(focusId);
+    if (focus) focus.focus();
+  }
+
+  function showLemonPrompt() {
+    const L = LemonadeStand;
+    const game = state.lemon;
+    hideAceyForms();
+    const actions = $("lemon-actions");
+    if (actions) {
+      actions.hidden = true;
+      actions.innerHTML = "";
+    }
+    const form = $("lemon-form");
+    const input = $("lemon-input");
+    const label = $("lemon-input-label");
+    const btn = $("lemon-submit");
+    if (!form || !input || !label) return;
+    if (game.step === "glasses") {
+      label.textContent = "HOW MANY GLASSES OF LEMONADE DO YOU WISH TO MAKE?";
+      if (btn) btn.textContent = "Make";
+    } else if (game.step === "signs") {
+      label.textContent = "HOW MANY ADVERTISING SIGNS (15 CENTS EACH) DO YOU WANT TO MAKE?";
+      if (btn) btn.textContent = "Make";
+    } else {
+      label.textContent = "WHAT PRICE (IN CENTS) DO YOU WISH TO CHARGE FOR LEMONADE?";
+      if (btn) btn.textContent = "Charge";
+    }
+    form.hidden = false;
+    input.value = "";
+    input.focus();
+  }
+
+  function startLemonade() {
+    const L = LemonadeStand;
+    hideAceyForms();
+    hideLemonForms();
+    state.acey = null;
+    state.lemon = { day: 0, assets: L.START_CENTS, phase: "intro" };
+    const log = $("door-log");
+    if (log) log.innerHTML = "";
+    [
+      "HI!  WELCOME TO LEMONSVILLE, CALIFORNIA!",
+      "",
+      "IN THIS SMALL TOWN, YOU ARE IN CHARGE OF",
+      "RUNNING YOUR OWN LEMONADE STAND.",
+      "",
+      "TO MANAGE YOUR LEMONADE STAND, YOU WILL",
+      "NEED TO MAKE THESE DECISIONS EVERY DAY:",
+      "",
+      "1. HOW MANY GLASSES OF LEMONADE TO MAKE",
+      "   (ONLY ONE BATCH IS MADE EACH MORNING)",
+      "2. HOW MANY ADVERTISING SIGNS TO MAKE",
+      "   (THE SIGNS COST FIFTEEN CENTS EACH)",
+      "3. WHAT PRICE TO CHARGE FOR EACH GLASS",
+      "",
+      "YOU WILL BEGIN WITH $2.00 CASH (ASSETS).",
+      "BECAUSE YOUR MOTHER GAVE YOU SOME SUGAR,",
+      "YOUR COST TO MAKE LEMONADE IS TWO CENTS",
+      "A GLASS (THIS MAY CHANGE IN THE FUTURE).",
+      "",
+      "YOUR EXPENSES ARE THE SUM OF THE COST OF",
+      "THE LEMONADE AND THE COST OF THE SIGNS.",
+      "YOUR PROFITS ARE THE DIFFERENCE BETWEEN",
+      "THE INCOME FROM SALES AND YOUR EXPENSES.",
+      "",
+      "THE NUMBER OF GLASSES YOU SELL EACH DAY",
+      "DEPENDS ON THE PRICE YOU CHARGE, AND ON",
+      "THE NUMBER OF ADVERTISING SIGNS YOU USE.",
+      "",
+      "KEEP TRACK OF YOUR ASSETS, BECAUSE YOU",
+      "CAN'T SPEND MORE MONEY THAN YOU HAVE!",
+      "",
+      "YOU WILL RUN YOUR STAND FOR 30 DAYS."
+    ].forEach((line) => appendDoorLog(line));
+    showLemonActions(`<button type="button" class="btn btn-amber" id="lemon-continue">Continue</button>`, "lemon-continue", () => {
+      $("lemon-continue").addEventListener("click", lemonBeginDay);
+    });
+  }
+
+  function lemonBeginDay() {
+    const L = LemonadeStand;
+    const game = state.lemon;
+    if (!game) return;
+    hideLemonForms();
+    hideAceyForms();
+    if (game.day >= L.DAYS) {
+      lemonShowEnd(false);
+      return;
+    }
+    const weather = L.forecastWeather(game.day);
+    game.day += 1;
+    game.weather = weather;
+    game.cost = L.glassCost(game.day);
+    const ev = L.rollEvents(game.day, weather);
+    game.r1 = ev.r1;
+    game.r2 = ev.r2;
+    game.glasses = 0;
+    game.signs = 0;
+    game.price = 0;
+    game.step = "glasses";
+    game.phase = "plan";
+    appendDoorLog("");
+    appendDoorLog("========================================");
+    appendDoorLog("ON DAY " + game.day + ", THE COST OF LEMONADE IS " + L.money(game.cost) + ".");
+    appendDoorLog("");
+    appendDoorLog("LEMONSVILLE WEATHER REPORT", "warn");
+    appendLemonPre(L.weatherArt(weather.id), "lemon-weather");
+    ev.messages.forEach((msg) => appendDoorLog(msg, "warn"));
+    appendDoorLog("");
+    appendDoorLog("ASSETS " + L.money(game.assets), "info");
+    appendDoorLog("");
+    showLemonPrompt();
+  }
+
+  function submitLemonInput(raw) {
+    const L = LemonadeStand;
+    const game = state.lemon;
+    if (!game || game.phase !== "plan") return;
+    if (game.step === "glasses") {
+      const parsed = L.parseWhole(raw, 0, L.MAX_GLASSES);
+      if (!parsed.ok) {
+        appendDoorLog("COME ON, LET'S BE REASONABLE NOW!!!", "err");
+        appendDoorLog("TRY AGAIN");
+        showLemonPrompt();
+        return;
+      }
+      if (parsed.value * game.cost > game.assets) {
+        appendDoorLog("THINK AGAIN!!! YOU HAVE ONLY " + L.money(game.assets), "err");
+        appendDoorLog("IN CASH AND TO MAKE " + parsed.value + " GLASSES OF");
+        appendDoorLog("LEMONADE YOU NEED " + L.money(parsed.value * game.cost) + " IN CASH.");
+        showLemonPrompt();
+        return;
+      }
+      game.glasses = parsed.value;
+      appendDoorLog("GLASSES TO MAKE: " + game.glasses);
+      game.step = "signs";
+      showLemonPrompt();
+      return;
+    }
+    if (game.step === "signs") {
+      const parsed = L.parseWhole(raw, 0, L.MAX_SIGNS);
+      if (!parsed.ok) {
+        appendDoorLog("COME ON, BE REASONABLE!!! TRY AGAIN.", "err");
+        showLemonPrompt();
+        return;
+      }
+      const left = game.assets - game.glasses * game.cost;
+      if (parsed.value * L.SIGN_COST > left) {
+        appendDoorLog("THINK AGAIN, YOU HAVE ONLY " + L.money(left), "err");
+        appendDoorLog("IN CASH LEFT AFTER MAKING YOUR LEMONADE.");
+        showLemonPrompt();
+        return;
+      }
+      game.signs = parsed.value;
+      appendDoorLog("SIGNS TO MAKE: " + game.signs);
+      game.step = "price";
+      showLemonPrompt();
+      return;
+    }
+    if (game.step === "price") {
+      const parsed = L.parseWhole(raw, 0, L.MAX_PRICE);
+      if (!parsed.ok) {
+        appendDoorLog("COME ON, BE REASONABLE!!! TRY AGAIN.", "err");
+        showLemonPrompt();
+        return;
+      }
+      game.price = parsed.value;
+      appendDoorLog("PRICE PER GLASS: " + game.price + " CENTS");
+      game.phase = "confirm";
+      hideLemonForms();
+      appendDoorLog("");
+      appendDoorLog("WOULD YOU LIKE TO CHANGE ANYTHING?");
+      showLemonActions(
+        `<button type="button" class="btn" id="lemon-yes">Yes</button><button type="button" class="btn btn-amber" id="lemon-no">No</button>`,
+        "lemon-no",
+        () => {
+          $("lemon-yes").addEventListener("click", lemonChangePlans);
+          $("lemon-no").addEventListener("click", lemonResolveDay);
+        }
+      );
+    }
+  }
+
+  function lemonChangePlans() {
+    const game = state.lemon;
+    if (!game) return;
+    game.glasses = 0;
+    game.signs = 0;
+    game.price = 0;
+    game.step = "glasses";
+    game.phase = "plan";
+    appendDoorLog("OK, LET'S CHANGE YOUR PLANS.");
+    appendDoorLog("");
+    showLemonPrompt();
+  }
+
+  function lemonResolveDay() {
+    const L = LemonadeStand;
+    const game = state.lemon;
+    if (!game) return;
+    hideLemonForms();
+    const storm = L.maybeThunderstorm(game.day, game.weather);
+    if (storm) {
+      appendDoorLog("");
+      appendDoorLog("WEATHER REPORT: A SEVERE THUNDERSTORM", "err");
+      appendDoorLog("HIT LEMONSVILLE EARLIER TODAY, JUST AS");
+      appendDoorLog("THE LEMONADE STANDS WERE BEING SET UP.");
+      appendDoorLog("UNFORTUNATELY, EVERYTHING WAS RUINED!!", "err");
+      appendLemonPre(L.weatherArt("storm"), "lemon-weather");
+    } else if (game.r2 === 2) {
+      appendDoorLog("");
+      appendDoorLog("THE STREET CREWS BOUGHT ALL YOUR", "warn");
+      appendDoorLog("LEMONADE AT LUNCHTIME!!", "warn");
+    }
+    const result = L.resolveDay({
+      glasses: game.glasses,
+      signs: game.signs,
+      price: game.price,
+      cost: game.cost,
+      r1: game.r1,
+      r2: game.r2,
+      storm: storm
+    });
+    game.assets += result.profit;
+    if (game.assets < 0) game.assets = 0;
+    appendDoorLog("");
+    appendLemonPre(L.formatReport(game.day, result, game.glasses, game.signs, game.price, game.assets), "lemon-report");
+    const nextCost = L.glassCost(game.day + 1);
+    const moreDays = game.day < L.DAYS;
+    if (moreDays && game.assets < nextCost) {
+      game.phase = "end";
+      appendDoorLog("");
+      appendDoorLog("...YOU DON'T HAVE ENOUGH MONEY LEFT", "err");
+      appendDoorLog("TO STAY IN BUSINESS  YOU'RE BANKRUPT!", "err");
+      lemonShowEnd(true);
+      return;
+    }
+    if (!moreDays) {
+      lemonShowEnd(false);
+      return;
+    }
+    game.phase = "report";
+    showLemonActions(`<button type="button" class="btn btn-amber" id="lemon-next">Next day</button>`, "lemon-next", () => {
+      $("lemon-next").addEventListener("click", lemonBeginDay);
+    });
+  }
+
+  function lemonShowEnd(bankrupt) {
+    const L = LemonadeStand;
+    const game = state.lemon;
+    if (!game) return;
+    game.phase = "end";
+    hideLemonForms();
+    const profit = game.assets - L.START_CENTS;
+    appendDoorLog("");
+    if (!bankrupt) appendDoorLog("YOUR 30 DAYS IN LEMONSVILLE ARE OVER.");
+    appendDoorLog("FINAL ASSETS  " + L.money(game.assets), "info");
+    if (profit > 0) appendDoorLog("PROFIT FOR THE SUMMER  " + L.money(profit), "ok");
+    else if (profit < 0) appendDoorLog("LOSS FOR THE SUMMER  " + L.money(-profit), "err");
+    else appendDoorLog("YOU BROKE EVEN.");
+    appendDoorLog("");
+    appendDoorLog("WOULD YOU LIKE TO PLAY AGAIN?");
+    showLemonActions(
+      `<button type="button" class="btn btn-amber" id="lemon-again-yes">Yes</button><button type="button" class="btn" id="lemon-again-no">No</button>`,
+      "lemon-again-yes",
+      () => {
+        $("lemon-again-yes").addEventListener("click", startLemonade);
+        $("lemon-again-no").addEventListener("click", () => go("doors"));
+      }
+    );
   }
 
   function showAbout() {
@@ -1013,13 +1316,33 @@
 
     if (state.view === "door") {
       if (k === "Q") { ev.preventDefault(); go("doors"); return; }
-      if (state.acey && state.acey.phase === "broke") {
+      if (state.doorId === "acey-deucey" && state.acey && state.acey.phase === "broke") {
         if (k === "Y") { ev.preventDefault(); startAceyDeucey(true); return; }
         if (k === "N") { ev.preventDefault(); go("doors"); return; }
       }
-      if (state.acey && state.acey.phase === "result" && (key === "Enter" || key === " ")) {
+      if (state.doorId === "acey-deucey" && state.acey && state.acey.phase === "result" && (key === "Enter" || key === " ")) {
         ev.preventDefault();
         dealAceyHand();
+      }
+      if (state.doorId === "lemonade-stand" && state.lemon) {
+        if (state.lemon.phase === "intro" && (key === "Enter" || key === " ")) {
+          ev.preventDefault();
+          lemonBeginDay();
+          return;
+        }
+        if (state.lemon.phase === "confirm") {
+          if (k === "Y") { ev.preventDefault(); lemonChangePlans(); return; }
+          if (k === "N" || key === "Enter") { ev.preventDefault(); lemonResolveDay(); return; }
+        }
+        if (state.lemon.phase === "report" && (key === "Enter" || key === " ")) {
+          ev.preventDefault();
+          lemonBeginDay();
+          return;
+        }
+        if (state.lemon.phase === "end") {
+          if (k === "Y") { ev.preventDefault(); startLemonade(); return; }
+          if (k === "N") { ev.preventDefault(); go("doors"); return; }
+        }
       }
     }
 
@@ -1091,6 +1414,13 @@
     const aceyPass = $("acey-pass");
     if (aceyPass) {
       aceyPass.addEventListener("click", () => submitAceyBet("0"));
+    }
+    const lemonForm = $("lemon-form");
+    if (lemonForm) {
+      lemonForm.addEventListener("submit", (ev) => {
+        ev.preventDefault();
+        submitLemonInput($("lemon-input") ? $("lemon-input").value : "");
+      });
     }
 
     const help = $("help-dialog");

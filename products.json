@@ -12,6 +12,13 @@
       "name": "Acey Deucey",
       "status": "open",
       "blurb": "Bet that the next card falls between the first two."
+    },
+    {
+      "id": "lemonade-stand",
+      "key": "2",
+      "name": "Lemonade Stand",
+      "status": "open",
+      "blurb": "Run a lemonade stand in Lemonsville for 30 days."
     }
   ],
   "products": [
