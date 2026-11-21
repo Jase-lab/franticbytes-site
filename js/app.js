@@ -182,6 +182,7 @@
       right.innerHTML = `<span class="status-clock">${escapeHtml(boardClock().stamp)}</span>`;
     }
     renderSessionFooter();
+    renderSysopCorner();
     const sess = sessionMinutes();
     if (sess.started && sess.left === 0 && state.view !== "goodbye" && state.view !== "intro" && state.view !== "login") { state.timeUp = true; go("goodbye"); }
   }
@@ -203,20 +204,11 @@
   }
 
   function sysopIsOnline() {
-    try {
-      const key = "fb_sysop_online";
-      const existing = sessionStorage.getItem(key);
-      if (existing === "1" || existing === "0") return existing === "1";
-      const on = Math.random() < 0.5;
-      sessionStorage.setItem(key, on ? "1" : "0");
-      return on;
-    } catch {
-      if (typeof state._sysopOnline !== "boolean") {
-        state._sysopOnline = Math.random() < 0.5;
-      }
-      return state._sysopOnline;
-    }
+    // Online for 15 minutes, offline for 15, all day (:00-:14 and :30-:44 online)
+    const d = new Date();
+    return Math.floor((d.getHours() * 60 + d.getMinutes()) / 15) % 2 === 0;
   }
+
 
   function renderSysopCorner() {
     const el = $("footer-right");
