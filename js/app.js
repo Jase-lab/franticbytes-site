@@ -81,6 +81,25 @@
     state._node = n;
     try { sessionStorage.setItem("fb_session_node", String(n)); } catch {}
     document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(n); });
+    const b = BAUDS[Math.floor(Math.random() * BAUDS.length)];
+    state._baud = b;
+    try { sessionStorage.setItem("fb_session_baud", String(b)); } catch {}
+    document.querySelectorAll(".baud-num").forEach((el) => { el.textContent = String(b); });
+  }
+
+  const BAUDS = [300, 1200, 2400];
+
+  function sessionBaud() {
+    try {
+      const v = Number(sessionStorage.getItem("fb_session_baud"));
+      if (BAUDS.includes(v)) return v;
+      const b = BAUDS[Math.floor(Math.random() * BAUDS.length)];
+      sessionStorage.setItem("fb_session_baud", String(b));
+      return b;
+    } catch {
+      if (state._baud === undefined) state._baud = BAUDS[Math.floor(Math.random() * BAUDS.length)];
+      return state._baud;
+    }
   }
 
   function ensureSessionStart() {
@@ -238,6 +257,7 @@
     });
     state.view = name;
     document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(sessionNode()); });
+    document.querySelectorAll(".baud-num").forEach((el) => { el.textContent = String(sessionBaud()); });
     document.body.classList.toggle("pre-login", name === "intro" || name === "login");
     document.body.classList.toggle("dialup", name === "intro" || name === "goodbye");
     if (name !== "intro" && name !== "login" && name !== "goodbye") {
@@ -375,7 +395,7 @@
       { text: "DIALING...", pause: 400 },
       { text: "RING", cls: "warn", pause: 420 },
       { text: "RING", cls: "warn", pause: 500 },
-      { text: "CONNECT 2400", cls: "ok", pause: 360 },
+      { text: "CONNECT " + sessionBaud(), cls: "ok", pause: 360 },
       { text: "" },
       { text: "CARRIER DETECTED", cls: "magenta", pause: 200 },
       { text: "INITIALIZING ANSI TERMINAL...", pause: 240 },
