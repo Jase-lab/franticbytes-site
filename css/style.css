@@ -367,13 +367,13 @@ a:hover, a:focus-visible { color: var(--amber); }
 }
 .presence.online { color: var(--green); text-shadow: var(--glow); }
 .presence.online .dot {
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
+  background: #3dff6a;
+  box-shadow: 0 0 6px #3dff6a;
   animation: sysop-blink 1.1s steps(1) infinite;
 }
 .presence.offline { color: var(--dim); text-shadow: none; }
 .presence.offline .dot {
-  background: var(--dim);
+  background: #a33a3a;
   box-shadow: none;
   opacity: 0.9;
 }
