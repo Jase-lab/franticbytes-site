@@ -183,7 +183,7 @@
     }
     renderSessionFooter();
     const sess = sessionMinutes();
-    if (sess.started && sess.left === 0 && state.view !== "goodbye" && state.view !== "intro" && state.view !== "login") go("goodbye");
+    if (sess.started && sess.left === 0 && state.view !== "goodbye" && state.view !== "intro" && state.view !== "login") { state.timeUp = true; go("goodbye"); }
   }
 
   function scheduleClock() {
@@ -569,8 +569,11 @@
     showPanel("goodbye");
     setHash("#/goodbye");
     const log = $("goodbye-log");
+    const timeUp = !!state.timeUp;
+    state.timeUp = false;
     await typeLines(log, [
-      { text: `THANKS FOR CALLING, ${greetName()}.`, cls: "info", pause: 200 },
+      ...(timeUp ? [{ text: "TIME LIMIT EXCEEDED", cls: "err", pause: 360 }] : []),
+      { text: "THANKS FOR CALLING FRANTICBBS.", cls: "info", pause: 200 },
       { text: "HANGING UP...", pause: 360 },
       { text: "NO CARRIER", cls: "err", pause: 200 },
     ]);
