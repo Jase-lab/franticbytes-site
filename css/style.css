@@ -607,3 +607,6 @@ code {
   font-family: inherit;
   color: var(--amber);
 }
+
+/* Hide header and footer until logged in */
+body.pre-login .status-bar { visibility: hidden; }

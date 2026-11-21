@@ -197,6 +197,7 @@
       el.hidden = key !== name;
     });
     state.view = name;
+    document.body.classList.toggle("pre-login", name === "intro" || name === "login");
     $("app").focus({ preventScroll: true });
   }
 
