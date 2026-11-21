@@ -99,6 +99,19 @@
     else if (dlg) dlg.setAttribute("open", "");
   }
 
+  function sessionNode() {
+    try {
+      const v = sessionStorage.getItem("fb_session_node");
+      if (v && /^[1-9]$/.test(v)) return Number(v);
+      const n = 1 + Math.floor(Math.random() * 9);
+      sessionStorage.setItem("fb_session_node", String(n));
+      return n;
+    } catch {
+      if (state._node === undefined) state._node = 1 + Math.floor(Math.random() * 9);
+      return state._node;
+    }
+  }
+
   function sessionLevel() {
     try {
       const key = "fb_session_level";
@@ -212,6 +225,7 @@
       el.hidden = key !== name;
     });
     state.view = name;
+    document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(sessionNode()); });
     document.body.classList.toggle("pre-login", name === "intro" || name === "login");
     $("app").focus({ preventScroll: true });
   }
@@ -347,7 +361,7 @@
       { text: "CARRIER DETECTED", cls: "magenta", pause: 200 },
       { text: "INITIALIZING ANSI TERMINAL...", pause: 240 },
       { text: "FRANTICBBS CONNECTED", cls: "info" },
-      { text: "NODE 1  ·  PUBLIC ACCESS  ·  " + todayStamp(), cls: "info" },
+      { text: "NODE " + sessionNode() + "  ·  PUBLIC ACCESS  ·  " + todayStamp(), cls: "info" },
     ]);
     if (!state.cancelled) showLogin();
   }
