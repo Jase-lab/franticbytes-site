@@ -63,6 +63,24 @@
     return boardClock().date;
   }
 
+  function resetSession() {
+    state.sessionStart = 0;
+    state._timeupShown = false;
+    try {
+      sessionStorage.removeItem(SS_SESSION_START);
+      sessionStorage.removeItem(SS_TIMEUP);
+    } catch {}
+  }
+
+  function newNode() {
+    const prev = sessionNode();
+    let n = prev;
+    while (n === prev) n = 1 + Math.floor(Math.random() * 9);
+    state._node = n;
+    try { sessionStorage.setItem("fb_session_node", String(n)); } catch {}
+    document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(n); });
+  }
+
   function ensureSessionStart() {
     try {
       if (!sessionStorage.getItem(SS_SESSION_START)) {
@@ -165,7 +183,7 @@
     }
     renderSessionFooter();
     const sess = sessionMinutes();
-    if (sess.started && sess.left === 0) maybeShowTimeUp();
+    if (sess.started && sess.left === 0 && state.view !== "goodbye" && state.view !== "intro" && state.view !== "login") go("goodbye");
   }
 
   function scheduleClock() {
@@ -227,6 +245,10 @@
     state.view = name;
     document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(sessionNode()); });
     document.body.classList.toggle("pre-login", name === "intro" || name === "login");
+    if (name !== "intro" && name !== "login" && name !== "goodbye") {
+      ensureSessionStart();
+      renderSessionFooter();
+    }
     $("app").focus({ preventScroll: true });
   }
 
@@ -345,6 +367,8 @@
   }
 
   async function runConnect() {
+    resetSession();
+    newNode();
     showPanel("intro");
     setHash("#/connect");
     const log = $("intro-log");
@@ -541,6 +565,7 @@
   }
 
   async function showGoodbye() {
+    newNode();
     showPanel("goodbye");
     setHash("#/goodbye");
     const log = $("goodbye-log");
@@ -549,7 +574,10 @@
       { text: "HANGING UP...", pause: 360 },
       { text: "NO CARRIER", cls: "err", pause: 200 },
     ]);
-    if (state.view === "goodbye") document.body.classList.add("pre-login");
+    if (state.view === "goodbye") {
+      document.body.classList.add("pre-login");
+      resetSession();
+    }
     const btn = panels.goodbye.querySelector("[data-go='connect']");
     if (btn) btn.focus();
   }
@@ -762,6 +790,7 @@
 
   function finishLogin(raw) {
     rememberHandle(normalizeHandle(raw));
+    resetSession();
     ensureSessionStart();
     renderStatusBar();
   }
