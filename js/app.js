@@ -815,17 +815,6 @@
       return;
     }
 
-    if (saved && !reduced) {
-      // Returning caller: short reconnect, then menu.
-      showPanel("intro");
-      await typeLines($("intro-log"), [
-        { text: "CARRIER RESTORED", cls: "ok", pause: 200 },
-        { text: `WELCOME BACK, ${saved}.`, cls: "info", pause: 200 },
-      ]);
-      if (!state.cancelled) go("menu");
-      return;
-    }
-
     await runConnect();
   }
 
