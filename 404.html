@@ -35,7 +35,7 @@
         <footer class="status-bar footer-bar">
           <span id="footer-left"></span>
           <span id="footer-right" class="sysop-corner">
-            <span class="sysop-name">SYSOP: Lord Frazzle</span>
+            <span class="sysop-name"><span class="ft-full">SYSOP: Lord Frazzle</span><span class="ft-short">SYSOP</span></span>
             <span class="presence" id="sysop-presence"><span class="dot" aria-hidden="true"></span><span class="presence-label"></span></span>
           </span>
         </footer>
@@ -111,9 +111,11 @@
             var handle = "GUEST";
             try { handle = localStorage.getItem("fb_handle") || "GUEST"; } catch (e2) {}
             var lvl = sessionStorage.getItem("fb_session_level") || "";
-            left.innerHTML = '<span class="session-handle">' + handle + '</span>  ' +
-              (lvl ? ('LVL ' + lvl + '  ') : '') +
-              '<span class="status-timeleft">TIME LEFT: ' + remain + '</span>';
+            function esc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+            left.innerHTML = '<span class="session-handle">' + esc(handle) + '</span>' +
+              '<span class="session-meta">' + (lvl ? ('  LVL ' + esc(lvl)) : '') +
+              '  <span class="status-timeleft"><span class="ft-full">TIME LEFT: ' + remain +
+              '</span><span class="ft-short">TL:' + remain + '</span></span></span>';
           }
         } catch (e) {}
       }

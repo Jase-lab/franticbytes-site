@@ -127,7 +127,7 @@
     const handle = greetName();
     const lvl = sessionLevel();
     const left = sess.left;
-    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span>  LVL ${lvl}  <span class="status-timeleft">TIME LEFT: ${left}</span>`;
+    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">  LVL ${lvl}  <span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
   }
 
   function renderStatusBar() {
@@ -178,7 +178,7 @@
     const on = sysopIsOnline();
     el.className = "sysop-corner";
     el.innerHTML = `
-      <span class="sysop-name">SYSOP: ${escapeHtml(sysopName())}</span>
+      <span class="sysop-name"><span class="ft-full">SYSOP: ${escapeHtml(sysopName())}</span><span class="ft-short">SYSOP</span></span>
       <span class="presence ${on ? "online" : "offline"}" title="${on ? "SysOp is on the board" : "SysOp is away from the board"}">
         <span class="dot" aria-hidden="true"></span>
         <span class="presence-label">${on ? "ONLINE" : "OFFLINE"}</span>
@@ -519,7 +519,7 @@
       { text: "HANGING UP...", pause: 360 },
       { text: "NO CARRIER", cls: "err", pause: 200 },
     ]);
-    const btn = panels.goodbye.querySelector("[data-go='connect']");
+    const btn = panels.goodbye.querySelector("[data-go='menu']");
     if (btn) btn.focus();
   }
 
