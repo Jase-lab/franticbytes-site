@@ -105,15 +105,30 @@
       const existing = sessionStorage.getItem(key);
       if (existing && /^\d+$/.test(existing)) {
         const n = Number(existing);
-        if (n >= 5 && n <= 255) return n;
+        if (n >= 0 && n <= 99) return n;
       }
-      const n = 5 + Math.floor(Math.random() * 251);
+      const n = Math.floor(Math.random() * 100);
       sessionStorage.setItem(key, String(n));
       return n;
     } catch {
-      if (!state._level) state._level = 5 + Math.floor(Math.random() * 251);
+      if (state._level === undefined) state._level = Math.floor(Math.random() * 100);
       return state._level;
     }
+  }
+
+  function sessionDownloads() {
+    try {
+      const v = sessionStorage.getItem("fb_session_dl");
+      if (v !== null && /^\d+$/.test(v)) return Number(v);
+    } catch {}
+    return typeof state._dl === "number" ? state._dl : 10;
+  }
+
+  function useDownload() {
+    const n = Math.max(0, sessionDownloads() - 1);
+    state._dl = n;
+    try { sessionStorage.setItem("fb_session_dl", String(n)); } catch {}
+    renderSessionFooter();
   }
 
   function renderSessionFooter() {
@@ -127,7 +142,7 @@
     const handle = greetName();
     const lvl = sessionLevel();
     const left = sess.left;
-    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">&nbsp;&nbsp;LVL ${lvl}&nbsp;&nbsp;<span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
+    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">&nbsp;&nbsp;LVL ${lvl}&nbsp;&nbsp;DL ${sessionDownloads()}&nbsp;&nbsp;<span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
   }
 
   function renderStatusBar() {
@@ -548,6 +563,7 @@
           openComingSoon(file, product);
           return;
         }
+        useDownload();
         window.location.assign(url);
         return;
       }
@@ -558,6 +574,7 @@
         if (res.ok) {
           const ctype = (res.headers.get("content-type") || "").toLowerCase();
           if (!ctype.includes("text/html")) {
+            useDownload();
             window.location.assign(url);
             return;
           }
