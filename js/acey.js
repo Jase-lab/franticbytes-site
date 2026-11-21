@@ -85,7 +85,7 @@
     const a = cardFace(left.rank, left.suit);
     const b = cardFace(right.rank, right.suit);
     const c = third && third.suit ? cardFace(third.rank, third.suit) : cardBack();
-    return a.map(function (line, i) { return line + "  " + b[i] + "  " + c[i]; }).join("\n");
+    return a.map(function (line, i) { return line + "  " + b[i] + "  |  " + c[i]; }).join("\n");
   }
 
   function isBetween(a, b, mid) {
