@@ -18,8 +18,8 @@
         <div class="scanlines" aria-hidden="true"></div>
         <div class="vignette" aria-hidden="true"></div>
         <header class="status-bar">
-          <span>FRANTICBBS  //  NODE 1  //  2400 8-N-1</span>
-          <span>ERROR 404</span>
+          <span id="status-left">FRANTICBBS  //  NODE 1<span class="status-baud">  //  2400 8-N-1</span>  //  ERROR 404</span>
+          <span id="status-right"><span class="status-clock" id="status-clock"></span></span>
         </header>
         <main class="screen">
           <section class="panel">
@@ -29,7 +29,8 @@
             <p class="dim" id="path"></p>
             <nav class="menu">
               <a class="menu-item" href="/"><kbd>B</kbd> Back to FranticBytes</a>
-              <a class="menu-item" href="/#/write65/downloads"><kbd>D</kbd> Write65 downloads</a>
+              <a class="menu-item" href="/#/write65/downloads"><kbd>F</kbd> File Section</a>
+              <a class="menu-item" href="/#/doors"><kbd>D</kbd> Doors</a>
             </nav>
           </section>
         </main>
@@ -38,7 +39,6 @@
           <span id="footer-right" class="sysop-corner">
             <span class="sysop-name">SYSOP: Lord Frazzle</span>
             <span class="presence" id="sysop-presence"><span class="dot" aria-hidden="true"></span><span class="presence-label"></span></span>
-            <span class="sysop-date" id="sysop-date"></span>
           </span>
         </footer>
       </div>
@@ -55,19 +55,24 @@
           "That build has not been uploaded to the board yet. Check back after the next drop.";
       }
 
-      function todayStamp() {
+      function boardClock() {
         try {
           var parts = new Intl.DateTimeFormat("en-US", {
             timeZone: "America/Denver",
             day: "2-digit",
             month: "short",
-            year: "2-digit"
+            year: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hourCycle: "h23"
           }).formatToParts(new Date());
           var get = function (t) {
             for (var i = 0; i < parts.length; i++) if (parts[i].type === t) return parts[i].value;
             return "";
           };
-          return get("day") + " " + get("month").replace(".", "").toUpperCase() + " " + get("year");
+          var date = get("day") + " " + get("month").replace(".", "").toUpperCase() + " " + get("year");
+          var time = String(get("hour")).padStart(2, "0") + ":" + String(get("minute")).padStart(2, "0");
+          return date + "  " + time;
         } catch (e) {
           return "";
         }
@@ -88,14 +93,29 @@
 
       var on = sysopIsOnline();
       var presence = document.getElementById("sysop-presence");
-      var dateEl = document.getElementById("sysop-date");
       if (presence) {
         presence.className = "presence " + (on ? "online" : "offline");
         presence.title = on ? "SysOp is on the board" : "SysOp is away from the board";
         var label = presence.querySelector(".presence-label");
         if (label) label.textContent = on ? "ONLINE" : "OFFLINE";
       }
-      if (dateEl) dateEl.textContent = todayStamp();
+      function paintClock() {
+        var clock = document.getElementById("status-clock");
+        if (clock) clock.textContent = boardClock();
+        var right = document.getElementById("status-right");
+        try {
+          var start = sessionStorage.getItem("fb_session_start");
+          if (start && right) {
+            var onMin = Math.max(0, Math.floor((Date.now() - Number(start)) / 60000));
+            var left = Math.max(0, 60 - onMin);
+            right.innerHTML = '<span class="status-timeon">TIME ON: ' + onMin + '</span>' +
+              '<span class="status-timeleft">TIME LEFT: ' + left + '</span>' +
+              '<span class="status-clock" id="status-clock">' + boardClock() + '</span>';
+          }
+        } catch (e) {}
+      }
+      paintClock();
+      setInterval(paintClock, 15000);
     })();
   </script>
 </body>

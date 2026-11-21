@@ -11,6 +11,7 @@
     menu: $("menu"),
     product: $("product"),
     downloads: $("downloads"),
+    doors: $("doors"),
     about: $("about"),
     goodbye: $("goodbye"),
   };
@@ -24,26 +25,105 @@
     cancelled: false,
   };
 
-  function todayStamp() {
+  const SESSION_LIMIT = 60;
+  const SS_SESSION_START = "fb_session_start";
+  const SS_TIMEUP = "fb_timeup_shown";
+
+  function boardClock() {
     try {
       const parts = new Intl.DateTimeFormat("en-US", {
         timeZone: "America/Denver",
         day: "2-digit",
         month: "short",
         year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
       }).formatToParts(new Date());
       const get = (type) => {
         const part = parts.find((p) => p.type === type);
         return part ? part.value : "";
       };
-      return `${get("day")} ${get("month").replace(".", "").toUpperCase()} ${get("year")}`;
+      const date = `${get("day")} ${get("month").replace(".", "").toUpperCase()} ${get("year")}`;
+      const time = `${String(get("hour")).padStart(2, "0")}:${String(get("minute")).padStart(2, "0")}`;
+      return { date, time, stamp: `${date}  ${time}` };
     } catch {
       const d = new Date();
       const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
       const dd = String(d.getDate()).padStart(2, "0");
       const yy = String(d.getFullYear()).slice(-2);
-      return `${dd} ${months[d.getMonth()]} ${yy}`;
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const date = `${dd} ${months[d.getMonth()]} ${yy}`;
+      return { date, time: `${hh}:${mm}`, stamp: `${date}  ${hh}:${mm}` };
     }
+  }
+
+  function todayStamp() {
+    return boardClock().date;
+  }
+
+  function ensureSessionStart() {
+    try {
+      if (!sessionStorage.getItem(SS_SESSION_START)) {
+        sessionStorage.setItem(SS_SESSION_START, String(Date.now()));
+      }
+      state.sessionStart = Number(sessionStorage.getItem(SS_SESSION_START)) || Date.now();
+    } catch {
+      if (!state.sessionStart) state.sessionStart = Date.now();
+    }
+  }
+
+  function sessionMinutes() {
+    if (!state.sessionStart) {
+      try {
+        const stored = sessionStorage.getItem(SS_SESSION_START);
+        if (stored) state.sessionStart = Number(stored);
+      } catch (_) { /* ignore */ }
+    }
+    if (!state.sessionStart) return { started: false, on: 0, left: SESSION_LIMIT };
+    const on = Math.max(0, Math.floor((Date.now() - state.sessionStart) / 60000));
+    return { started: true, on, left: Math.max(0, SESSION_LIMIT - on) };
+  }
+
+  function maybeShowTimeUp() {
+    try {
+      if (sessionStorage.getItem(SS_TIMEUP) === "1") return;
+      sessionStorage.setItem(SS_TIMEUP, "1");
+    } catch {
+      if (state._timeupShown) return;
+      state._timeupShown = true;
+    }
+    const dlg = $("time-up");
+    if (dlg && typeof dlg.showModal === "function") dlg.showModal();
+    else if (dlg) dlg.setAttribute("open", "");
+  }
+
+  function renderStatusBar() {
+    const right = $("status-right");
+    if (!right) return;
+    const clock = boardClock().stamp;
+    const sess = sessionMinutes();
+    let html = "";
+    if (sess.started) {
+      html += `<span class="status-timeon">TIME ON: ${sess.on}</span>`;
+      html += `<span class="status-timeleft">TIME LEFT: ${sess.left}</span>`;
+    }
+    html += `<span class="status-clock">${escapeHtml(clock)}</span>`;
+    right.innerHTML = html;
+    if (sess.started && sess.left === 0) maybeShowTimeUp();
+  }
+
+  function scheduleClock() {
+    renderStatusBar();
+    if (state.clockTimeout) clearTimeout(state.clockTimeout);
+    if (state.clockInterval) clearInterval(state.clockInterval);
+    const now = new Date();
+    const ms = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    state.clockTimeout = setTimeout(() => {
+      renderStatusBar();
+      state.clockInterval = setInterval(renderStatusBar, 60000);
+    }, Math.max(250, ms));
   }
 
   function sysopName() {
@@ -77,9 +157,7 @@
         <span class="dot" aria-hidden="true"></span>
         <span class="presence-label">${on ? "ONLINE" : "OFFLINE"}</span>
       </span>
-      <span class="sysop-date">${escapeHtml(todayStamp())}</span>
     `;
-    if ($("status-right")) $("status-right").textContent = "";
   }
 
   function sleep(ms) {
@@ -152,7 +230,7 @@
     const q = new URLSearchParams(location.search);
     if (q.has("skip") || q.has("fast") || q.get("go") === "downloads") return true;
     const h = (location.hash || "").toLowerCase();
-    if (h === "#downloads" || h === "#/downloads" || h === "#write65" || h === "#/write65" || h === "#/write65/downloads" || h === "#menu" || h === "#/menu" || h === "#about" || h === "#/about") {
+    if (h === "#downloads" || h === "#/downloads" || h === "#write65" || h === "#/write65" || h === "#/write65/downloads" || h === "#menu" || h === "#/menu" || h === "#about" || h === "#/about" || h === "#doors" || h === "#/doors") {
       return true;
     }
     return false;
@@ -217,7 +295,7 @@
   async function runConnect() {
     showPanel("intro");
     setHash("#/connect");
-    setFooter("ESC or S = SKIP INTRO   ·   D = DOWNLOADS   ·   ? = HELP");
+    setFooter("ESC or S = SKIP INTRO   ·   F = FILE SECTION   ·   D = DOORS   ·   ? = HELP");
     const log = $("intro-log");
     await typeLines(log, [
       { text: "ATZ", cls: "info" },
@@ -240,7 +318,7 @@
   function showLogin() {
     showPanel("login");
     setHash("#/login");
-    setFooter("ENTER = CONNECT   ·   G = GUEST   ·   D = DOWNLOADS   ·   ? = HELP");
+    setFooter("ENTER = CONNECT   ·   G = GUEST   ·   F = FILE SECTION   ·   D = DOORS   ·   ? = HELP");
     const saved = loadSavedHandle();
     const input = $("handle-input");
     if (saved && saved !== "GUEST") input.value = saved;
@@ -270,7 +348,8 @@
     });
 
     const extras = [
-      { go: "downloads", key: "D", label: "Downloads — Write65 files" },
+      { go: "downloads", key: "F", label: "File Section" },
+      { go: "doors", key: "D", label: "Doors" },
       { go: "about", key: "A", label: "About the board" },
       { go: "goodbye", key: "G", label: "Goodbye / log off" },
     ];
@@ -289,7 +368,7 @@
     $("welcome-line").textContent = `HELLO, ${greetName()}.  ACCESS GRANTED.  MAIL WAITING: 0`;
     showPanel("menu");
     setHash("#/menu");
-    setFooter("W = WRITE65   ·   D = DOWNLOADS   ·   A = ABOUT   ·   G = GOODBYE   ·   ? = HELP");
+    setFooter("W = WRITE65   ·   F = FILE SECTION   ·   D = DOORS   ·   A = ABOUT   ·   G = GOODBYE   ·   ? = HELP");
     const first = $("main-menu").querySelector(".menu-item");
     if (first) first.focus();
   }
@@ -315,12 +394,12 @@
     `;
     const nav = $("product-menu");
     nav.innerHTML = `
-      <button type="button" class="menu-item" data-go="downloads" data-product="${escapeHtml(product.id)}"><kbd>D</kbd> Downloads</button>
+      <button type="button" class="menu-item" data-go="downloads" data-product="${escapeHtml(product.id)}"><kbd>F</kbd> File Section</button>
       <button type="button" class="menu-item" data-go="menu"><kbd>B</kbd> Back to main menu</button>
     `;
     showPanel("product");
     setHash("#/" + product.id);
-    setFooter("D = DOWNLOADS   ·   B or ESC = BACK   ·   ? = HELP");
+    setFooter("F = FILE SECTION   ·   D = DOORS   ·   B or ESC = BACK   ·   ? = HELP");
     nav.querySelector(".menu-item").focus();
   }
 
@@ -328,8 +407,8 @@
     const product = productById(id) || firstProduct();
     if (!product) return showMenu();
     state.productId = product.id;
-    $("downloads-title").textContent = `${product.name} downloads`;
-    $("downloads-lead").textContent = `Version ${product.version}${product.stage ? " (" + product.stage + ")" : ""}. If a file is not on the board yet, you will see COMING SOON instead of a broken link.`;
+    $("downloads-title").textContent = `${product.name} File Section`;
+    $("downloads-lead").textContent = `This File Area has the ${product.name} drops for version ${product.version}${product.stage ? " (" + product.stage + ")" : ""}. If a file is not on the board yet, you will see COMING SOON instead of a broken link.`;
     const list = $("download-list");
     list.innerHTML = "";
     (product.downloads || []).forEach((file) => {
@@ -339,7 +418,7 @@
       a.href = fileUrl(product, file);
       a.dataset.product = product.id;
       a.dataset.file = file.id;
-      a.innerHTML = `<kbd>${escapeHtml(file.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(file.label)}</span><span class="dl-notes">${escapeHtml(file.notes || file.filename)}</span></span>`;
+      a.innerHTML = `<kbd>${escapeHtml(file.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(file.label)}</span><span class="dl-action"><kbd>D</kbd>ownload</span><span class="dl-notes">${escapeHtml(file.notes || file.filename)}</span></span>`;
       li.appendChild(a);
       list.appendChild(li);
     });
@@ -350,15 +429,74 @@
     `;
     showPanel("downloads");
     setHash("#/" + product.id + "/downloads");
-    setFooter("1–4 = GET FILE   ·   B or ESC = BACK   ·   M = MENU   ·   ? = HELP");
+    setFooter("1–4 = DOWNLOAD   ·   B or ESC = BACK   ·   M = MENU   ·   D = DOORS   ·   ? = HELP");
     const first = list.querySelector(".dl-link");
+    if (first) first.focus();
+  }
+
+  function doorList() {
+    return (state.catalog && Array.isArray(state.catalog.doors)) ? state.catalog.doors : [];
+  }
+
+  function showDoorNotice(status) {
+    const closed = status === "out_of_order";
+    $("soon-title").textContent = closed ? "*** OUT OF ORDER ***" : "*** COMING SOON ***";
+    $("soon-body").textContent = closed
+      ? "This door bay is dark. Lord Frazzle has not hung a game here yet."
+      : "This door is framed, but no game is bolted on yet. Check back after the next drop.";
+    $("soon-file").textContent = "No game is attached to this bay.";
+    const dlg = $("coming-soon");
+    if (typeof dlg.showModal === "function") dlg.showModal();
+    else dlg.setAttribute("open", "");
+  }
+
+  function showDoors() {
+    $("doors-lead").textContent = "Online door games, played right from this terminal. No doors are hung yet — the bays below are waiting for a real game, not a placeholder title.";
+    $("doors-note").innerHTML = `<p>“I put the frames up and oiled the hinges. Games come later. Don’t rattle the knobs.”</p><footer>— SysOp ${escapeHtml(sysopName())}</footer>`;
+    const list = $("doors-list");
+    list.innerHTML = "";
+    const doors = doorList();
+    const rows = doors.length
+      ? doors
+      : [
+          { id: "bay-1", key: "1", status: "coming_soon" },
+          { id: "bay-2", key: "2", status: "out_of_order" },
+          { id: "bay-3", key: "3", status: "coming_soon" },
+        ];
+    rows.forEach((door) => {
+      const li = document.createElement("li");
+      const status = door.status || (door.url ? "open" : "coming_soon");
+      const statusLabel = status === "out_of_order" ? "OUT OF ORDER" : status === "open" ? "READY" : "COMING SOON";
+      const title = door.name || ("DOOR " + (door.key || ""));
+      const isOpen = status === "open" && door.url;
+      const el = document.createElement(isOpen ? "a" : "button");
+      if (!isOpen) el.type = "button";
+      el.className = "dl-link door-slot";
+      if (isOpen) el.href = door.url;
+      el.dataset.door = door.id || "";
+      el.dataset.status = status;
+      el.innerHTML = `<kbd>${escapeHtml(door.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(title)}</span><span class="door-status ${status === "out_of_order" ? "out-of-order" : status === "open" ? "ready" : "coming-soon"}">${escapeHtml(statusLabel)}</span>${door.blurb ? `<span class="dl-notes">${escapeHtml(door.blurb)}</span>` : ""}</span>`;
+      if (!isOpen) {
+        el.addEventListener("click", (ev) => {
+          ev.preventDefault();
+          showDoorNotice(status);
+        });
+      }
+      li.appendChild(el);
+      list.appendChild(li);
+    });
+    $("doors-nav").innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>B</kbd> Back to main menu</button><button type="button" class="menu-item" data-go="downloads"><kbd>F</kbd> File Section</button>`;
+    showPanel("doors");
+    setHash("#/doors");
+    setFooter("B or ESC = BACK   ·   F = FILE SECTION   ·   M = MENU   ·   ? = HELP");
+    const first = list.querySelector(".dl-link, .door-slot");
     if (first) first.focus();
   }
 
   function showAbout() {
     showPanel("about");
     setHash("#/about");
-    setFooter("B or ESC = BACK   ·   D = DOWNLOADS   ·   ? = HELP");
+    setFooter("B or ESC = BACK   ·   F = FILE SECTION   ·   D = DOORS   ·   ? = HELP");
     const back = panels.about.querySelector("[data-go='menu']");
     if (back) back.focus();
   }
@@ -439,6 +577,9 @@
       case "downloads":
         showDownloads(state.productId);
         break;
+      case "doors":
+        showDoors();
+        break;
       case "about":
         showAbout();
         break;
@@ -458,6 +599,7 @@
     if (h === "about") return { view: "about" };
     if (h === "goodbye") return { view: "goodbye" };
     if (h === "downloads") return { view: "downloads" };
+    if (h === "doors") return { view: "doors" };
     const m = h.match(/^([a-z0-9-]+)(?:\/(downloads))?$/);
     if (m && productById(m[1])) {
       return { view: m[2] ? "downloads" : "product", productId: m[1] };
@@ -493,11 +635,16 @@
         cancelType();
         finishLogin("GUEST");
         go("menu");
-      } else if (key === "d" || key === "D") {
+      } else if (key === "f" || key === "F") {
         ev.preventDefault();
         cancelType();
         finishLogin("GUEST");
         go("downloads");
+      } else if (key === "d" || key === "D") {
+        ev.preventDefault();
+        cancelType();
+        finishLogin("GUEST");
+        go("doors");
       }
       return;
     }
@@ -514,7 +661,7 @@
     if (key === "Escape" || key === "b" || key === "B") {
       ev.preventDefault();
       if (state.view === "downloads") go("product");
-      else if (state.view === "product" || state.view === "about" || state.view === "goodbye") go("menu");
+      else if (state.view === "product" || state.view === "about" || state.view === "goodbye" || state.view === "doors") go("menu");
       else if (state.view === "login") {
         finishLogin("GUEST");
         go("menu");
@@ -524,9 +671,14 @@
 
     const k = key.length === 1 ? key.toUpperCase() : key;
 
-    if (k === "D" && state.view !== "downloads") {
+    if (k === "F" && state.view !== "downloads" && state.view !== "login") {
       ev.preventDefault();
       go("downloads");
+      return;
+    }
+    if (k === "D" && state.view !== "doors" && state.view !== "login") {
+      ev.preventDefault();
+      go("doors");
       return;
     }
     if (k === "M" && state.view !== "login") {
@@ -534,7 +686,7 @@
       go("menu");
       return;
     }
-    if (k === "A" && (state.view === "menu" || state.view === "product" || state.view === "downloads")) {
+    if (k === "A" && (state.view === "menu" || state.view === "product" || state.view === "downloads" || state.view === "doors")) {
       ev.preventDefault();
       go("about");
       return;
@@ -565,6 +717,17 @@
       }
     }
 
+    if (state.view === "doors") {
+      const match = Array.from(($("doors-list") && $("doors-list").querySelectorAll(".door-slot")) || []).find((el) => {
+        const kbd = el.querySelector("kbd");
+        return kbd && kbd.textContent.trim() === k;
+      });
+      if (match) {
+        ev.preventDefault();
+        match.click();
+      }
+    }
+
     if (state.view === "login" && k === "G" && !isTypingInField(ev.target)) {
       ev.preventDefault();
       finishLogin("GUEST");
@@ -574,6 +737,8 @@
 
   function finishLogin(raw) {
     rememberHandle(normalizeHandle(raw));
+    ensureSessionStart();
+    renderStatusBar();
   }
 
   function bind() {
@@ -623,8 +788,10 @@
 
   async function boot() {
     renderSysopCorner();
+    scheduleClock();
     await loadCatalog();
     renderSysopCorner();
+    scheduleClock();
     bind();
 
     const saved = loadSavedHandle();
@@ -635,6 +802,8 @@
       const route = routeFromHash();
       if (wantsDownloads() || route.view === "downloads") {
         go("downloads", route.productId);
+      } else if (route.view === "doors") {
+        go("doors");
       } else if (route.view === "product") {
         go("product", route.productId);
       } else if (route.view === "about") {
@@ -650,7 +819,7 @@
     if (saved && !reduced) {
       // Returning caller: short reconnect, then menu.
       showPanel("intro");
-      setFooter("ESC or S = SKIP   ·   D = DOWNLOADS");
+      setFooter("ESC or S = SKIP   ·   F = FILE SECTION   ·   D = DOORS");
       await typeLines($("intro-log"), [
         { text: "CARRIER RESTORED", cls: "ok", pause: 200 },
         { text: `WELCOME BACK, ${saved}.`, cls: "info", pause: 200 },

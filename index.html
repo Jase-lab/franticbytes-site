@@ -19,6 +19,7 @@
       "sysop": "Lord Frazzle",
       "canonicalHost": "www.franticbytes.com"
     },
+    "doors": [],
     "products": [
       {
         "id": "write65",
@@ -69,7 +70,7 @@
   </script>
 </head>
 <body>
-  <a class="skip-link" href="#downloads" id="skip-to-downloads">Skip handshake — go to downloads</a>
+  <a class="skip-link" href="#downloads" id="skip-to-downloads">Skip handshake — go to the File Section</a>
 
   <div class="crt" id="crt">
     <div class="bezel">
@@ -78,7 +79,7 @@
         <div class="vignette" aria-hidden="true"></div>
 
         <header class="status-bar" role="banner">
-          <span id="status-left">FRANTICBBS  //  NODE 1  //  2400 8-N-1</span>
+          <span id="status-left">FRANTICBBS  //  NODE 1<span class="status-baud">  //  2400 8-N-1</span></span>
           <span id="status-right"></span>
         </header>
 
@@ -87,7 +88,7 @@
             <div id="intro-log" class="log" aria-live="polite"></div>
             <div class="intro-actions">
               <button type="button" class="btn" id="btn-skip" title="Skip handshake (Esc or S)">Skip intro</button>
-              <button type="button" class="btn btn-amber" id="btn-skip-dl" title="Jump to Write65 downloads (D)">Downloads</button>
+              <button type="button" class="btn btn-amber" id="btn-skip-dl" title="Jump to the Write65 File Section (F)">File Section</button>
             </div>
           </div>
 
@@ -128,10 +129,19 @@
           </section>
 
           <section id="downloads" class="panel" hidden>
-            <h2 id="downloads-title">Downloads</h2>
+            <h2 id="downloads-title">File Section</h2>
             <p id="downloads-lead" class="dim"></p>
             <ul class="menu download-list" id="download-list"></ul>
-            <nav class="menu" id="downloads-nav" aria-label="Downloads navigation"></nav>
+            <nav class="menu" id="downloads-nav" aria-label="File Section navigation"></nav>
+          </section>
+
+          <section id="doors" class="panel" hidden>
+            <h2>Doors</h2>
+            <p class="rule" aria-hidden="true">========================================</p>
+            <p id="doors-lead" class="dim"></p>
+            <blockquote class="sysop-note" id="doors-note"></blockquote>
+            <ul class="menu download-list" id="doors-list"></ul>
+            <nav class="menu" id="doors-nav" aria-label="Doors navigation"></nav>
           </section>
 
           <section id="about" class="panel" hidden>
@@ -163,24 +173,25 @@
               <p>JavaScript is off, so the modem handshake is skipped. You can still read the board and grab files below.</p>
               <h2>Write65 <span class="dim">v0.8.0 beta</span></h2>
               <p>A retro-style Markdown editor for the MEGA65 — and a desktop twin for Mac, PC, and Linux. White-on-blue, F-key menus, and <code>.w65</code> files that match the MEGA65 (ISO-8859-15, 64 KB).</p>
-              <h3 id="noscript-downloads">Downloads</h3>
+              <h3 id="noscript-downloads">File Section</h3>
               <ul class="download-list static-list">
-                <li><a href="downloads/write65/write65-0.8.0.d81">MEGA65 disk image — write65-0.8.0.d81</a></li>
-                <li><a href="downloads/write65/Write65-0.8.0-macos.zip">Mac — Write65-0.8.0-macos.zip</a></li>
-                <li><a href="downloads/write65/Write65-0.8.0-windows.zip">PC (Windows) — Write65-0.8.0-windows.zip</a></li>
-                <li><a href="downloads/write65/Write65-0.8.0-x86_64.AppImage">Linux — Write65-0.8.0-x86_64.AppImage</a></li>
+                <li><a href="downloads/write65/write65-0.8.0.d81">[D]ownload MEGA65 disk image — write65-0.8.0.d81</a></li>
+                <li><a href="downloads/write65/Write65-0.8.0-macos.zip">[D]ownload Mac — Write65-0.8.0-macos.zip</a></li>
+                <li><a href="downloads/write65/Write65-0.8.0-windows.zip">[D]ownload PC (Windows) — Write65-0.8.0-windows.zip</a></li>
+                <li><a href="downloads/write65/Write65-0.8.0-x86_64.AppImage">[D]ownload Linux — Write65-0.8.0-x86_64.AppImage</a></li>
               </ul>
               <p class="dim">If a link is missing, that build has not been uploaded yet.</p>
+              <h3>Doors</h3>
+              <p>Online door games will live in the Doors area. No doors are online yet — the bays are coming soon or out of order.</p>
             </section>
           </noscript>
         </main>
 
         <footer class="status-bar footer-bar" role="contentinfo">
-          <span id="footer-left">ESC=BACK  ·  S=SKIP  ·  D=DOWNLOADS  ·  ?=HELP</span>
+          <span id="footer-left">ESC=BACK  ·  S=SKIP  ·  F=FILE SECTION  ·  D=DOORS  ·  ?=HELP</span>
           <span id="footer-right" class="sysop-corner">
             <span class="sysop-name">SYSOP: Lord Frazzle</span>
             <span class="presence" id="sysop-presence"><span class="dot" aria-hidden="true"></span><span class="presence-label"></span></span>
-            <span class="sysop-date" id="sysop-date"></span>
           </span>
         </footer>
       </div>
@@ -196,16 +207,25 @@
     </form>
   </dialog>
 
+  <dialog id="time-up" class="bbs-dialog" aria-labelledby="time-up-title">
+    <h2 id="time-up-title">TIME LIMIT EXCEEDED</h2>
+    <p>Lord Frazzle only allots 60 minutes a day on this node — officially. Unofficially, the File Section stays open. We're not hanging up.</p>
+    <form method="dialog">
+      <button type="submit" class="btn btn-amber" value="ok">OK</button>
+    </form>
+  </dialog>
+
   <dialog id="help-dialog" class="bbs-dialog" aria-labelledby="help-title">
     <h2 id="help-title">Keys</h2>
     <ul class="help-list">
       <li><kbd>Esc</kbd> or <kbd>B</kbd> — back / skip handshake</li>
       <li><kbd>S</kbd> — skip handshake to the main menu</li>
-      <li><kbd>D</kbd> — jump to Write65 downloads</li>
+      <li><kbd>F</kbd> — File Section</li>
+      <li><kbd>D</kbd> — Doors</li>
       <li><kbd>W</kbd> — Write65</li>
       <li><kbd>A</kbd> — about the board</li>
       <li><kbd>G</kbd> — goodbye / log off</li>
-      <li><kbd>1</kbd>–<kbd>4</kbd> — pick a download</li>
+      <li><kbd>1</kbd>–<kbd>4</kbd> — download a file in the File Section</li>
       <li><kbd>?</kbd> — this help</li>
     </ul>
     <p class="dim">Everything is also a button or a link. Tab, enter, and touch all work.</p>

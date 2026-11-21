@@ -178,6 +178,20 @@ a:hover, a:focus-visible { color: var(--amber); }
   white-space: nowrap;
   color: var(--dim);
 }
+.status-right,
+#status-right {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-left: auto;
+  text-align: right;
+}
+.status-clock { color: var(--cyan); letter-spacing: 0.08em; white-space: nowrap; }
+.status-timeleft { color: var(--amber); letter-spacing: 0.08em; white-space: nowrap; }
+.status-timeon { color: var(--dim); letter-spacing: 0.08em; white-space: nowrap; }
+
 .sysop-name { color: var(--cyan); text-shadow: 0 0 8px rgba(92, 240, 255, 0.4); }
 .sysop-date { color: var(--dim); letter-spacing: 0.08em; }
 
@@ -428,6 +442,31 @@ kbd {
 }
 
 .dl-title { color: inherit; }
+.dl-action {
+  color: var(--amber);
+  letter-spacing: 0.06em;
+}
+.dl-action kbd { margin-right: 0; }
+
+.sysop-note {
+  margin: 0.8rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--amber);
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(255, 191, 60, 0.35);
+}
+.sysop-note p { margin: 0; }
+.sysop-note footer {
+  margin-top: 0.4rem;
+  color: var(--dim);
+  text-shadow: none;
+  font-style: normal;
+}
+
+.door-status { letter-spacing: 0.12em; font-size: 0.9em; }
+.door-status.coming-soon { color: var(--amber); }
+.door-status.out-of-order { color: #c45454; }
+.door-status.ready { color: var(--green); }
 .dl-notes {
   font-size: 0.85em;
   color: var(--dim);
@@ -511,6 +550,9 @@ h3 { font-weight: 400; color: var(--amber); letter-spacing: 0.08em; }
   }
   .status-bar { font-size: 0.75em; }
   #status-left { word-break: break-word; }
+  .status-baud,
+  .status-timeon { display: none; }
+  #status-right { gap: 0.45rem; }
   #footer-right,
   .sysop-corner {
     white-space: normal;
