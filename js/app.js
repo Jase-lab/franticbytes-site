@@ -239,6 +239,7 @@
     state.view = name;
     document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(sessionNode()); });
     document.body.classList.toggle("pre-login", name === "intro" || name === "login");
+    document.body.classList.toggle("dialup", name === "intro" || name === "goodbye");
     if (name !== "intro" && name !== "login" && name !== "goodbye") {
       ensureSessionStart();
       renderSessionFooter();

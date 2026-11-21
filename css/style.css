@@ -23,14 +23,98 @@
   --dim: #a39682;
   --bezel: #242535;
   --bezel-edge: #4a4d63;
-  --glow: 0 0 8px rgba(242, 225, 198, 0.35);
+  --glow: 0 0 8px var(--glow-color);
   --accent: #c9a36a;
   --accent-ink: #303241;
-  --accent-glow: 0 0 8px rgba(201, 163, 106, 0.4);
+  --accent-glow: 0 0 8px var(--accent-glow-color);
+  --glow-color: rgba(242, 225, 198, 0.35);
+  --accent-glow-color: rgba(201, 163, 106, 0.4);
+  --ink-glow-color: rgba(242, 225, 198, 0.4);
+  --heading-glow-color: rgba(242, 225, 198, 0.4);
+  --ink-glow: 0 0 12px var(--ink-glow-color);
+  --heading-glow: 0 0 10px var(--heading-glow-color);
+  --page-bg: #1a1b28;
+  --crt-0: #3a3d52;
+  --crt-1: #1a1b28;
+  --crt-2: #12131c;
+  --bezel-0: #3a3d52;
+  --bezel-1: #242535;
+  --bezel-2: #181924;
+  --bezel-ring: #16171f;
+  --screen-line: rgba(242, 225, 198, 0.18);
+  --bar-line: rgba(242, 225, 198, 0.25);
+  --dialog-glow: rgba(242, 225, 198, 0.18);
   --font: "VT323", "Courier New", Courier, ui-monospace, monospace;
   --line: 1.15;
   --pad: clamp(0.75rem, 3vw, 1.5rem);
+  --theme-fade-bg: 2.4s ease;
+  --theme-fade-fg: 0.9s ease;
 }
+
+/* Handshake / hang-up: original pre-80485b0 palette on black. */
+body.dialup {
+  --bg: #020805;
+  --screen: #03140a;
+  --green: #3dff6a;
+  --green-dim: #1c8a3c;
+  --green-deep: #0a3a16;
+  --amber: #ffbf3c;
+  --cyan: #5cf0ff;
+  --magenta: #ff5ad5;
+  --red: #ff5a6a;
+  --white: #e9ffe9;
+  --dim: #7fb88a;
+  --bezel: #1a1c1a;
+  --bezel-edge: #3a3d3a;
+  --glow-color: rgba(61, 255, 106, 0.45);
+  --accent: #ffbf3c;
+  --accent-ink: #1a1000;
+  --accent-glow-color: rgba(255, 191, 60, 0.4);
+  --ink-glow-color: rgba(92, 240, 255, 0.5);
+  --heading-glow-color: rgba(92, 240, 255, 0.45);
+  --page-bg: #000;
+  --crt-0: #121412;
+  --crt-1: #050605;
+  --crt-2: #000;
+  --bezel-0: #2a2c2a;
+  --bezel-1: #151715;
+  --bezel-2: #0c0d0c;
+  --bezel-ring: #111;
+  --screen-line: rgba(61, 255, 106, 0.15);
+  --bar-line: rgba(92, 240, 255, 0.25);
+  --dialog-glow: rgba(255, 191, 60, 0.25);
+}
+
+@property --bg { syntax: "<color>"; inherits: true; initial-value: #1a1b28; }
+@property --screen { syntax: "<color>"; inherits: true; initial-value: #303241; }
+@property --green { syntax: "<color>"; inherits: true; initial-value: #f2e1c6; }
+@property --green-dim { syntax: "<color>"; inherits: true; initial-value: #a89880; }
+@property --green-deep { syntax: "<color>"; inherits: true; initial-value: #4a453c; }
+@property --amber { syntax: "<color>"; inherits: true; initial-value: #c9a36a; }
+@property --cyan { syntax: "<color>"; inherits: true; initial-value: #f2e1c6; }
+@property --magenta { syntax: "<color>"; inherits: true; initial-value: #f2e1c6; }
+@property --red { syntax: "<color>"; inherits: true; initial-value: #d4c4ab; }
+@property --white { syntax: "<color>"; inherits: true; initial-value: #f7efe0; }
+@property --dim { syntax: "<color>"; inherits: true; initial-value: #a39682; }
+@property --bezel { syntax: "<color>"; inherits: true; initial-value: #242535; }
+@property --bezel-edge { syntax: "<color>"; inherits: true; initial-value: #4a4d63; }
+@property --accent { syntax: "<color>"; inherits: true; initial-value: #c9a36a; }
+@property --accent-ink { syntax: "<color>"; inherits: true; initial-value: #303241; }
+@property --glow-color { syntax: "<color>"; inherits: true; initial-value: rgba(242, 225, 198, 0.35); }
+@property --accent-glow-color { syntax: "<color>"; inherits: true; initial-value: rgba(201, 163, 106, 0.4); }
+@property --page-bg { syntax: "<color>"; inherits: true; initial-value: #1a1b28; }
+@property --crt-0 { syntax: "<color>"; inherits: true; initial-value: #3a3d52; }
+@property --crt-1 { syntax: "<color>"; inherits: true; initial-value: #1a1b28; }
+@property --crt-2 { syntax: "<color>"; inherits: true; initial-value: #12131c; }
+@property --bezel-0 { syntax: "<color>"; inherits: true; initial-value: #3a3d52; }
+@property --bezel-1 { syntax: "<color>"; inherits: true; initial-value: #242535; }
+@property --bezel-2 { syntax: "<color>"; inherits: true; initial-value: #181924; }
+@property --bezel-ring { syntax: "<color>"; inherits: true; initial-value: #16171f; }
+@property --screen-line { syntax: "<color>"; inherits: true; initial-value: rgba(242, 225, 198, 0.18); }
+@property --bar-line { syntax: "<color>"; inherits: true; initial-value: rgba(242, 225, 198, 0.25); }
+@property --dialog-glow { syntax: "<color>"; inherits: true; initial-value: rgba(242, 225, 198, 0.18); }
+@property --ink-glow-color { syntax: "<color>"; inherits: true; initial-value: rgba(242, 225, 198, 0.4); }
+@property --heading-glow-color { syntax: "<color>"; inherits: true; initial-value: rgba(242, 225, 198, 0.4); }
 
 *,
 *::before,
@@ -40,7 +124,7 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background: var(--bg);
+  background: var(--page-bg);
   color: var(--green);
   font-family: var(--font);
   font-size: clamp(18px, 2.4vw, 26px);
@@ -51,6 +135,51 @@ html, body {
 body {
   min-height: 100dvh;
   min-height: 100vh;
+  transition:
+    --page-bg var(--theme-fade-bg),
+    --bg var(--theme-fade-bg),
+    --screen var(--theme-fade-bg),
+    --crt-0 var(--theme-fade-bg),
+    --crt-1 var(--theme-fade-bg),
+    --crt-2 var(--theme-fade-bg),
+    --bezel var(--theme-fade-bg),
+    --bezel-0 var(--theme-fade-bg),
+    --bezel-1 var(--theme-fade-bg),
+    --bezel-2 var(--theme-fade-bg),
+    --bezel-edge var(--theme-fade-bg),
+    --bezel-ring var(--theme-fade-bg),
+    --screen-line var(--theme-fade-bg),
+    --bar-line var(--theme-fade-bg),
+    --dialog-glow var(--theme-fade-bg),
+    --glow-color var(--theme-fade-fg),
+    --accent-glow-color var(--theme-fade-fg),
+    --ink-glow-color var(--theme-fade-fg),
+    --heading-glow-color var(--theme-fade-fg),
+    --green var(--theme-fade-fg),
+    --green-dim var(--theme-fade-fg),
+    --green-deep var(--theme-fade-fg),
+    --amber var(--theme-fade-fg),
+    --cyan var(--theme-fade-fg),
+    --magenta var(--theme-fade-fg),
+    --red var(--theme-fade-fg),
+    --white var(--theme-fade-fg),
+    --dim var(--theme-fade-fg),
+    --accent var(--theme-fade-fg),
+    --accent-ink var(--theme-fade-fg),
+    background var(--theme-fade-bg),
+    box-shadow var(--theme-fade-bg),
+    color var(--theme-fade-fg),
+    text-shadow var(--theme-fade-fg),
+    border-color var(--theme-fade-fg);
+}
+
+html, .crt, .bezel, .screen-wrap {
+  transition:
+    background var(--theme-fade-bg),
+    box-shadow var(--theme-fade-bg),
+    color var(--theme-fade-fg),
+    text-shadow var(--theme-fade-fg),
+    border-color var(--theme-fade-fg);
 }
 
 a { color: var(--cyan); text-underline-offset: 0.15em; }
@@ -80,7 +209,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   align-items: stretch;
   justify-content: center;
   background:
-    radial-gradient(ellipse at center, #3a3d52 0%, #1a1b28 55%, #12131c 100%);
+    radial-gradient(ellipse at center, var(--crt-0) 0%, var(--crt-1) 55%, var(--crt-2) 100%);
   padding: max(0.5rem, env(safe-area-inset-top))
            max(0.5rem, env(safe-area-inset-right))
            max(0.5rem, env(safe-area-inset-bottom))
@@ -91,11 +220,11 @@ a:hover, a:focus-visible { color: var(--amber); }
   width: min(920px, 100%);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(165deg, #3a3d52 0%, #242535 40%, #181924 100%);
+  background: linear-gradient(165deg, var(--bezel-0) 0%, var(--bezel-1) 40%, var(--bezel-2) 100%);
   border-radius: 18px;
   padding: clamp(0.6rem, 2.2vw, 1.4rem);
   box-shadow:
-    0 0 0 2px #16171f,
+    0 0 0 2px var(--bezel-ring),
     0 0 0 4px var(--bezel-edge),
     0 24px 60px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -113,7 +242,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   overflow: hidden;
   box-shadow:
     inset 0 0 80px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(242, 225, 198, 0.18);
+    inset 0 0 0 1px var(--screen-line);
   color: var(--green);
   text-shadow: var(--glow);
 }
@@ -155,7 +284,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   text-shadow: var(--accent-glow);
   font-size: 0.85em;
   letter-spacing: 0.06em;
-  border-bottom: 1px solid rgba(242, 225, 198, 0.25);
+  border-bottom: 1px solid var(--bar-line);
 }
 
 .footer-bar {
@@ -166,7 +295,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   align-items: center;
   gap: 0.6rem;
   border-bottom: 0;
-  border-top: 1px solid rgba(242, 225, 198, 0.25);
+  border-top: 1px solid var(--bar-line);
   color: var(--dim);
   text-shadow: none;
 }
@@ -282,7 +411,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   font-weight: 400;
   letter-spacing: 0.06em;
 }
-.wordmark .w1 { color: var(--cyan); text-shadow: 0 0 12px rgba(242, 225, 198, 0.4); }
+.wordmark .w1 { color: var(--cyan); text-shadow: var(--ink-glow); }
 .wordmark .w2 { color: var(--green); }
 
 .fb-brand {
@@ -538,7 +667,7 @@ h2 {
   font-size: clamp(1.6rem, 6vw, 2.4rem);
   font-weight: 400;
   color: var(--cyan);
-  text-shadow: 0 0 10px rgba(242, 225, 198, 0.4);
+  text-shadow: var(--heading-glow);
   letter-spacing: 0.08em;
 }
 
@@ -555,7 +684,7 @@ h3 { font-weight: 400; color: var(--amber); letter-spacing: 0.08em; }
   background: var(--screen);
   color: var(--green);
   border: 2px solid var(--amber);
-  box-shadow: 0 0 24px rgba(242, 225, 198, 0.18), inset 0 0 30px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 24px var(--dialog-glow), inset 0 0 30px rgba(0, 0, 0, 0.4);
   font-family: var(--font);
   font-size: 1.15rem;
   padding: 1.1rem 1.2rem 1.2rem;
@@ -585,6 +714,9 @@ h3 { font-weight: 400; color: var(--amber); letter-spacing: 0.08em; }
   .panel { animation: none; }
   .scanlines { opacity: 0.25; }
   .presence.online .dot { animation: none; }
+  html, body, .crt, .bezel, .screen-wrap {
+    transition: none !important;
+  }
 }
 
 /* Tight phones: drop heavy bezel, keep the screen */
@@ -632,7 +764,7 @@ h1 {
   font-size: clamp(1.6rem, 6vw, 2.6rem);
   font-weight: 400;
   color: var(--cyan);
-  text-shadow: 0 0 10px rgba(242, 225, 198, 0.4);
+  text-shadow: var(--heading-glow);
   letter-spacing: 0.08em;
 }
 
