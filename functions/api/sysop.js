@@ -178,7 +178,7 @@ export async function onRequestPost(context) {
     return reply(request, data, contentType, 200, { ok: true }, [
       "MESSAGE SAVED.",
       "IT HAS BEEN FILED IN THE SYSOP MAILBOX.",
-      "LORD FRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.",
+      "LORDFRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.",
     ]);
   }
 
@@ -246,7 +246,7 @@ export async function onRequestPost(context) {
   return reply(request, data, contentType, 200, { ok: true }, [
     "MESSAGE SAVED.",
     "IT HAS BEEN FILED IN THE SYSOP MAILBOX.",
-    "LORD FRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.",
+    "LORDFRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.",
   ]);
 }
 

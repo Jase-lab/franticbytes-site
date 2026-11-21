@@ -202,7 +202,7 @@
   }
 
   function sysopName() {
-    return (state.catalog && state.catalog.site && state.catalog.site.sysop) || "Lord Frazzle";
+    return (state.catalog && state.catalog.site && state.catalog.site.sysop) || "LordFrazzle";
   }
 
   function sysopIsOnline() {
@@ -503,7 +503,7 @@
     const closed = status === "out_of_order";
     $("soon-title").textContent = closed ? "*** OUT OF ORDER ***" : "*** COMING SOON ***";
     $("soon-body").textContent = closed
-      ? "This door bay is dark. Lord Frazzle has not hung a game here yet."
+      ? "This door bay is dark. LordFrazzle has not hung a game here yet."
       : "This door is framed, but no game is bolted on yet. Check back after the next drop.";
     $("soon-file").textContent = "No game is attached to this bay.";
     const dlg = $("coming-soon");
@@ -1492,12 +1492,12 @@
       lead.hidden = false;
       lead.textContent = done
         ? "MESSAGE SAVED."
-        : "Share your thoughts with Lord Frazzle and FranticBytes - Be sure to include your email address if you'd like us to get back to you. Thank you!";
+        : "Share your thoughts with LordFrazzle and FranticBytes - Be sure to include your email address if you'd like us to get back to you. Thank you!";
     }
     if (review) {
       if (done) {
         review.hidden = false;
-        review.textContent = "IT HAS BEEN FILED IN THE SYSOP MAILBOX.\nLORD FRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.";
+        review.textContent = "IT HAS BEEN FILED IN THE SYSOP MAILBOX.\nLORDFRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.";
       } else {
         review.hidden = true;
         review.textContent = "";
