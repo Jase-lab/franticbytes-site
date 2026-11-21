@@ -46,17 +46,17 @@
         const part = parts.find((p) => p.type === type);
         return part ? part.value : "";
       };
-      const date = `${get("day")} ${get("month").replace(".", "").toUpperCase()} ${get("year")}`;
+      const date = `${get("day")}-${get("month").replace(".", "")}-${get("year")}`;
       const time = `${String(get("hour")).padStart(2, "0")}:${String(get("minute")).padStart(2, "0")}`;
       return { date, time, stamp: `${date}  ${time}` };
     } catch {
       const d = new Date();
-      const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+      const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       const dd = String(d.getDate()).padStart(2, "0");
       const yy = String(d.getFullYear()).slice(-2);
       const hh = String(d.getHours()).padStart(2, "0");
       const mm = String(d.getMinutes()).padStart(2, "0");
-      const date = `${dd} ${months[d.getMonth()]} ${yy}`;
+      const date = `${dd}-${months[d.getMonth()]}-${yy}`;
       return { date, time: `${hh}:${mm}`, stamp: `${date}  ${hh}:${mm}` };
     }
   }
