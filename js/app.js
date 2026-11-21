@@ -535,6 +535,7 @@
       { text: "HANGING UP...", pause: 360 },
       { text: "NO CARRIER", cls: "err", pause: 200 },
     ]);
+    if (state.view === "goodbye") document.body.classList.add("pre-login");
     const btn = panels.goodbye.querySelector("[data-go='connect']");
     if (btn) btn.focus();
   }
