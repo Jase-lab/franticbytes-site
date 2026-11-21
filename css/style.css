@@ -625,9 +625,19 @@ body.pre-login .status-bar { visibility: hidden; }
 }
 #acey-form .block-cursor { display: none; }
 #acey-form label { display: block; margin-top: 0.8rem; }
-.acey-hand {
-  white-space: pre-wrap;
-  margin: 0.15rem 0;
+.acey-table {
+  margin: 0.45rem 0 0.2rem;
+  padding: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  font-family: "Courier New", Courier, "DejaVu Sans Mono", "Liberation Mono", Menlo, Monaco, ui-monospace, monospace;
+  font-size: clamp(12px, 3.6vw, 1em);
+  line-height: 1.1;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
   color: var(--amber);
   text-shadow: 0 0 8px rgba(255, 191, 60, 0.4);
+  background: transparent;
+  border: 0;
 }

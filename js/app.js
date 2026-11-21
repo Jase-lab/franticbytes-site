@@ -510,13 +510,17 @@
 
   function showDoors() {
     const doors = doorList();
-    const ready = doors.some((d) => (d.status || (d.url ? "open" : "coming_soon")) === "open");
-    if (ready) {
-      $("doors-lead").textContent = "Online door games, played right from this terminal.";
-      $("doors-note").innerHTML = `<p>“Bay 1 is hung. Don’t rattle the other knobs.”</p><footer>— SysOp ${escapeHtml(sysopName())}</footer>`;
-    } else {
-      $("doors-lead").textContent = "Online door games, played right from this terminal. No doors are hung yet — the bays below are waiting for a real game, not a placeholder title.";
-      $("doors-note").innerHTML = `<p>“I put the frames up and oiled the hinges. Games come later. Don’t rattle the knobs.”</p><footer>— SysOp ${escapeHtml(sysopName())}</footer>`;
+    const heading = document.querySelector("#doors h2");
+    if (heading) heading.textContent = "ONLINE GAMES (DOORS)";
+    const lead = $("doors-lead");
+    if (lead) {
+      lead.classList.remove("dim");
+      lead.innerHTML = "THE FOLLOWING DOOR GAMES ARE AVAILABLE ON THIS NODE.<br><br>DOORS RUN IN A SEPARATE PROGRAM.  TIME SPENT IN DOORS COUNTS AGAINST YOUR TIME REMAINING.";
+    }
+    const note = $("doors-note");
+    if (note) {
+      note.innerHTML = "";
+      note.hidden = true;
     }
     const list = $("doors-list");
     list.innerHTML = "";
@@ -666,21 +670,17 @@
       showAceyBroke();
       return;
     }
-    const a = A.drawCard();
-    const b = A.drawCard();
-    state.acey = { a: a, b: b, phase: "bet" };
+    const cards = A.drawHand(3);
+    state.acey = { a: cards[0].rank, b: cards[1].rank, cards: cards, phase: "bet" };
     appendDoorLog(aceyCreditsLine(), "info");
     appendDoorLog("");
     appendDoorLog("HERE ARE YOUR NEXT TWO CARDS:");
-    const first = document.createElement("div");
-    first.className = "acey-hand";
-    first.textContent = "     " + A.cardName(a);
-    const second = document.createElement("div");
-    second.className = "acey-hand";
-    second.textContent = "                    " + A.cardName(b);
-    $("door-log").appendChild(first);
-    $("door-log").appendChild(second);
-    second.scrollIntoView({ block: "nearest" });
+    const table = document.createElement("pre");
+    table.className = "acey-table";
+    table.textContent = A.renderHand(cards[0], cards[1], null);
+    $("door-log").appendChild(table);
+    state.acey.table = table;
+    table.scrollIntoView({ block: "nearest" });
     appendDoorLog("");
     showAceyBetForm();
   }
@@ -700,7 +700,8 @@
       return;
     }
     const bet = parsed.bet;
-    const c = A.drawCard();
+    const third = state.acey.cards[2];
+    const c = third.rank;
     const result = A.resolve(aceyCredits(), bet, state.acey.a, state.acey.b, c);
     state.acey.phase = "result";
     state.acey.c = c;
@@ -708,11 +709,10 @@
     if (result.outcome === "chicken") {
       appendDoorLog("CHICKEN!!", "warn");
     } else {
-      const third = document.createElement("div");
-      third.className = "acey-hand";
-      third.textContent = "                                   " + A.cardName(c);
-      $("door-log").appendChild(third);
-      third.scrollIntoView({ block: "nearest" });
+      if (state.acey.table) {
+        state.acey.table.textContent = A.renderHand(state.acey.cards[0], state.acey.cards[1], third);
+        state.acey.table.scrollIntoView({ block: "nearest" });
+      }
       if (result.outcome === "win") appendDoorLog("YOU WIN!!!", "ok");
       else appendDoorLog("SORRY, YOU LOSE", "err");
     }
@@ -772,7 +772,10 @@
     const timeUp = !!state.timeUp;
     state.timeUp = false;
     await typeLines(log, [
-      ...(timeUp ? [{ text: "TIME LIMIT EXCEEDED", cls: "err", pause: 360 }] : []),
+      ...(timeUp ? [
+        { text: "TIME LIMIT EXCEEDED", cls: "err", pause: 360 },
+        { text: "[NO WORRIES - YOU CAN CALL BACK ANYTIME.]", cls: "info", pause: 360 },
+      ] : []),
       { text: "THANKS FOR CALLING FRANTICBBS.", cls: "info", pause: 200 },
       { text: "HANGING UP...", pause: 360 },
       { text: "NO CARRIER", cls: "err", pause: 200 },
