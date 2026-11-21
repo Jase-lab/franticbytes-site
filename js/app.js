@@ -577,7 +577,7 @@
   }
 
   async function boot() {
-    $("status-right").textContent = "SYSOP: JASE  ·  " + todayStamp();
+    $("status-right").textContent = "SYSOP: FRANTIC  ·  " + todayStamp();
     await loadCatalog();
     bind();
 
