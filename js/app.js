@@ -412,7 +412,7 @@
       <p>${escapeHtml(product.blurb || "")}</p>
     `;
     const nav = $("product-menu");
-    nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main Menu</button>`;
+    nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("product");
     setHash("#/" + product.id);
     nav.querySelector(".menu-item").focus();
@@ -438,7 +438,7 @@
       list.appendChild(li);
     });
     const nav = $("downloads-nav");
-    nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main Menu</button>`;
+    nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("downloads");
     setHash("#/" + product.id + "/downloads");
     const first = list.querySelector(".dl-link");
@@ -496,7 +496,7 @@
       li.appendChild(el);
       list.appendChild(li);
     });
-    $("doors-nav").innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main Menu</button>`;
+    $("doors-nav").innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("doors");
     setHash("#/doors");
     const first = list.querySelector(".dl-link, .door-slot");

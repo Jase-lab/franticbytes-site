@@ -47,7 +47,7 @@ Then open <http://127.0.0.1:8080/>. Add `?skip=1` to jump the handshake, or `#/w
 
 | Key | Action |
 |---|---|
-| Esc / M | Main Menu (or skip the handshake) |
+| Esc / M | Back to Main Menu (or skip the handshake) |
 | S | Skip handshake to the main menu |
 | W / F / D / A / G | On the main menu: Write65 / File Section / Doors / about / goodbye |
 | 1–4 | Pick a file in the File Section |
