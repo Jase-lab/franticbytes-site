@@ -282,8 +282,17 @@ a:hover, a:focus-visible { color: var(--amber); }
 .wordmark .w1 { color: var(--cyan); text-shadow: 0 0 12px rgba(92, 240, 255, 0.5); }
 .wordmark .w2 { color: var(--green); }
 
-.fb-logo-wrap {
+.fb-brand {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   margin: 0.2rem 0 0;
+}
+
+.fb-logo-wrap {
+  margin: 0;
+  flex: 0 0 auto;
   font-size: 1em;
   font-weight: 400;
   color: inherit;
@@ -297,7 +306,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   max-width: 100%;
   overflow-x: auto;
   font-family: "Courier New", Courier, "DejaVu Sans Mono", "Liberation Mono", Consolas, Menlo, Monaco, ui-monospace, monospace;
-  font-size: clamp(9px, 3.2vw, 0.85em);
+  font-size: clamp(7px, 1.7vw, 0.5em);
   line-height: 1.05;
   letter-spacing: 0;
   white-space: pre;
@@ -308,6 +317,12 @@ a:hover, a:focus-visible { color: var(--amber); }
   background: transparent;
   border: 0;
   display: block;
+}
+
+.fb-blurb {
+  flex: 1 1 10rem;
+  margin: 0;
+  min-width: 0;
 }
 
 .visually-hidden {
