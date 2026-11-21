@@ -346,7 +346,7 @@
       { text: "" },
       { text: "CARRIER DETECTED", cls: "magenta", pause: 200 },
       { text: "INITIALIZING ANSI TERMINAL...", pause: 240 },
-      { text: "FRANTICBYTES TELECOMMUNICATIONS", cls: "info" },
+      { text: "FRANTICBBS CONNECTED", cls: "info" },
       { text: "NODE 1  ·  PUBLIC ACCESS  ·  " + todayStamp(), cls: "info" },
     ]);
     if (!state.cancelled) showLogin();
