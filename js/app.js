@@ -25,7 +25,7 @@
     cancelled: false,
   };
 
-  const SESSION_LIMIT = 60;
+  const SESSION_LIMIT = 20;
   const SS_SESSION_START = "fb_session_start";
   const SS_TIMEUP = "fb_timeup_shown";
 
@@ -142,7 +142,7 @@
     const handle = greetName();
     const lvl = sessionLevel();
     const left = sess.left;
-    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">&nbsp;&nbsp;LVL ${lvl}&nbsp;&nbsp;DL ${sessionDownloads()}&nbsp;&nbsp;<span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
+    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">&nbsp;&nbsp;LVL ${lvl}&nbsp;&nbsp;UL 0&nbsp;&nbsp;DL ${sessionDownloads()}&nbsp;&nbsp;<span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
   }
 
   function renderStatusBar() {
