@@ -245,7 +245,7 @@ a:hover, a:focus-visible { color: var(--amber); }
   box-shadow: none;
   opacity: 0.9;
 }
-.presence-label { letter-spacing: 0.12em; }
+.presence-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 @keyframes sysop-blink {
   50% { opacity: 0.25; }
