@@ -905,6 +905,20 @@
 
     const typing = isTypingInField(ev.target);
 
+    if ((key === "ArrowDown" || key === "ArrowUp") && !typing) {
+      const panel = panels[state.view];
+      if (panel) {
+        const items = Array.from(panel.querySelectorAll("a[href], button:not([disabled])")).filter((el) => el.offsetParent !== null);
+        if (items.length) {
+          ev.preventDefault();
+          const i = items.indexOf(document.activeElement);
+          const next = i < 0 ? 0 : (i + (key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+          items[next].focus();
+          return;
+        }
+      }
+    }
+
     if (key === "?" && !typing) {
       ev.preventDefault();
       const help = $("help-dialog");
