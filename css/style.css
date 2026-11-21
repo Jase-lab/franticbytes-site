@@ -165,7 +165,21 @@ a:hover, a:focus-visible { color: var(--amber); }
   color: var(--dim);
   text-shadow: none;
 }
-#footer-left { min-width: 0; }
+#footer-left {
+  min-width: 0;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+}
+.session-handle {
+  color: var(--cyan);
+  text-shadow: 0 0 8px rgba(92, 240, 255, 0.4);
+}
+.dl-num {
+  color: var(--dim);
+  min-width: 2ch;
+  flex-shrink: 0;
+  text-shadow: none;
+}
 #footer-right,
 .sysop-corner {
   display: inline-flex;
@@ -442,12 +456,6 @@ kbd {
 }
 
 .dl-title { color: inherit; }
-.dl-action {
-  color: var(--amber);
-  letter-spacing: 0.06em;
-}
-.dl-action kbd { margin-right: 0; }
-
 .sysop-note {
   margin: 0.8rem 0 0;
   padding: 0.6rem 0.8rem;
@@ -550,8 +558,7 @@ h3 { font-weight: 400; color: var(--amber); letter-spacing: 0.08em; }
   }
   .status-bar { font-size: 0.75em; }
   #status-left { word-break: break-word; }
-  .status-baud,
-  .status-timeon { display: none; }
+  .status-baud { display: none; }
   #status-right { gap: 0.45rem; }
   #footer-right,
   .sysop-corner {

@@ -99,18 +99,44 @@
     else if (dlg) dlg.setAttribute("open", "");
   }
 
+  function sessionLevel() {
+    try {
+      const key = "fb_session_level";
+      const existing = sessionStorage.getItem(key);
+      if (existing && /^\d+$/.test(existing)) {
+        const n = Number(existing);
+        if (n >= 5 && n <= 255) return n;
+      }
+      const n = 5 + Math.floor(Math.random() * 251);
+      sessionStorage.setItem(key, String(n));
+      return n;
+    } catch {
+      if (!state._level) state._level = 5 + Math.floor(Math.random() * 251);
+      return state._level;
+    }
+  }
+
+  function renderSessionFooter() {
+    const el = $("footer-left");
+    if (!el) return;
+    const sess = sessionMinutes();
+    if (!sess.started) {
+      el.textContent = "";
+      return;
+    }
+    const handle = greetName();
+    const lvl = sessionLevel();
+    const left = sess.left;
+    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span>  LVL ${lvl}  <span class="status-timeleft">TIME LEFT: ${left}</span>`;
+  }
+
   function renderStatusBar() {
     const right = $("status-right");
-    if (!right) return;
-    const clock = boardClock().stamp;
-    const sess = sessionMinutes();
-    let html = "";
-    if (sess.started) {
-      html += `<span class="status-timeon">TIME ON: ${sess.on}</span>`;
-      html += `<span class="status-timeleft">TIME LEFT: ${sess.left}</span>`;
+    if (right) {
+      right.innerHTML = `<span class="status-clock">${escapeHtml(boardClock().stamp)}</span>`;
     }
-    html += `<span class="status-clock">${escapeHtml(clock)}</span>`;
-    right.innerHTML = html;
+    renderSessionFooter();
+    const sess = sessionMinutes();
     if (sess.started && sess.left === 0) maybeShowTimeUp();
   }
 
@@ -172,10 +198,6 @@
     });
     state.view = name;
     $("app").focus({ preventScroll: true });
-  }
-
-  function setFooter(text) {
-    $("footer-left").textContent = text;
   }
 
   function rememberHandle(name) {
@@ -295,7 +317,6 @@
   async function runConnect() {
     showPanel("intro");
     setHash("#/connect");
-    setFooter("ESC or S = SKIP INTRO   ·   F = FILE SECTION   ·   D = DOORS   ·   ? = HELP");
     const log = $("intro-log");
     await typeLines(log, [
       { text: "ATZ", cls: "info" },
@@ -318,7 +339,6 @@
   function showLogin() {
     showPanel("login");
     setHash("#/login");
-    setFooter("ENTER = CONNECT   ·   G = GUEST   ·   F = FILE SECTION   ·   D = DOORS   ·   ? = HELP");
     const saved = loadSavedHandle();
     const input = $("handle-input");
     if (saved && saved !== "GUEST") input.value = saved;
@@ -368,7 +388,6 @@
     $("welcome-line").textContent = `HELLO, ${greetName()}.  ACCESS GRANTED.  MAIL WAITING: 0`;
     showPanel("menu");
     setHash("#/menu");
-    setFooter("W = WRITE65   ·   F = FILE SECTION   ·   D = DOORS   ·   A = ABOUT   ·   G = GOODBYE   ·   ? = HELP");
     const first = $("main-menu").querySelector(".menu-item");
     if (first) first.focus();
   }
@@ -393,13 +412,9 @@
       <p>${escapeHtml(product.blurb || "")}</p>
     `;
     const nav = $("product-menu");
-    nav.innerHTML = `
-      <button type="button" class="menu-item" data-go="downloads" data-product="${escapeHtml(product.id)}"><kbd>F</kbd> File Section</button>
-      <button type="button" class="menu-item" data-go="menu"><kbd>B</kbd> Back to main menu</button>
-    `;
+    nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main Menu</button>`;
     showPanel("product");
     setHash("#/" + product.id);
-    setFooter("F = FILE SECTION   ·   D = DOORS   ·   B or ESC = BACK   ·   ? = HELP");
     nav.querySelector(".menu-item").focus();
   }
 
@@ -418,18 +433,14 @@
       a.href = fileUrl(product, file);
       a.dataset.product = product.id;
       a.dataset.file = file.id;
-      a.innerHTML = `<kbd>${escapeHtml(file.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(file.label)}</span><span class="dl-action"><kbd>D</kbd>ownload</span><span class="dl-notes">${escapeHtml(file.notes || file.filename)}</span></span>`;
+      a.innerHTML = `<span class="dl-num">${escapeHtml(file.key || "")}.</span><span class="dl-meta"><span class="dl-title">${escapeHtml(file.label)}</span><span class="dl-notes">${escapeHtml(file.filename)}</span></span>`;
       li.appendChild(a);
       list.appendChild(li);
     });
     const nav = $("downloads-nav");
-    nav.innerHTML = `
-      <button type="button" class="menu-item" data-go="product" data-product="${escapeHtml(product.id)}"><kbd>B</kbd> Back to ${escapeHtml(product.name)}</button>
-      <button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main menu</button>
-    `;
+    nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main Menu</button>`;
     showPanel("downloads");
     setHash("#/" + product.id + "/downloads");
-    setFooter("1–4 = DOWNLOAD   ·   B or ESC = BACK   ·   M = MENU   ·   D = DOORS   ·   ? = HELP");
     const first = list.querySelector(".dl-link");
     if (first) first.focus();
   }
@@ -485,10 +496,9 @@
       li.appendChild(el);
       list.appendChild(li);
     });
-    $("doors-nav").innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>B</kbd> Back to main menu</button><button type="button" class="menu-item" data-go="downloads"><kbd>F</kbd> File Section</button>`;
+    $("doors-nav").innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Main Menu</button>`;
     showPanel("doors");
     setHash("#/doors");
-    setFooter("B or ESC = BACK   ·   F = FILE SECTION   ·   M = MENU   ·   ? = HELP");
     const first = list.querySelector(".dl-link, .door-slot");
     if (first) first.focus();
   }
@@ -496,7 +506,6 @@
   function showAbout() {
     showPanel("about");
     setHash("#/about");
-    setFooter("B or ESC = BACK   ·   F = FILE SECTION   ·   D = DOORS   ·   ? = HELP");
     const back = panels.about.querySelector("[data-go='menu']");
     if (back) back.focus();
   }
@@ -504,7 +513,6 @@
   async function showGoodbye() {
     showPanel("goodbye");
     setHash("#/goodbye");
-    setFooter("R = REDIAL   ·   ? = HELP");
     const log = $("goodbye-log");
     await typeLines(log, [
       { text: `THANKS FOR CALLING, ${greetName()}.`, cls: "info", pause: 200 },
@@ -658,11 +666,15 @@
       return;
     }
 
-    if (key === "Escape" || key === "b" || key === "B") {
+    if (key === "Escape" || key === "m" || key === "M") {
       ev.preventDefault();
-      if (state.view === "downloads") go("product");
-      else if (state.view === "product" || state.view === "about" || state.view === "goodbye" || state.view === "doors") go("menu");
-      else if (state.view === "login") {
+      if (state.view === "login") {
+        finishLogin("GUEST");
+        go("menu");
+      } else if (state.view !== "menu" && state.view !== "intro") {
+        go("menu");
+      } else if (state.view === "intro") {
+        cancelType();
         finishLogin("GUEST");
         go("menu");
       }
@@ -671,40 +683,12 @@
 
     const k = key.length === 1 ? key.toUpperCase() : key;
 
-    if (k === "F" && state.view !== "downloads" && state.view !== "login") {
-      ev.preventDefault();
-      go("downloads");
-      return;
-    }
-    if (k === "D" && state.view !== "doors" && state.view !== "login") {
-      ev.preventDefault();
-      go("doors");
-      return;
-    }
-    if (k === "M" && state.view !== "login") {
-      ev.preventDefault();
-      go("menu");
-      return;
-    }
-    if (k === "A" && (state.view === "menu" || state.view === "product" || state.view === "downloads" || state.view === "doors")) {
-      ev.preventDefault();
-      go("about");
-      return;
-    }
-    if (k === "G" && state.view === "menu") {
-      ev.preventDefault();
-      go("goodbye");
-      return;
-    }
-    if (k === "R" && state.view === "goodbye") {
-      ev.preventDefault();
-      go("connect");
-      return;
-    }
-    if (k === "W" && (state.view === "menu" || state.view === "about")) {
-      ev.preventDefault();
-      go("product", "write65");
-      return;
+    if (state.view === "menu") {
+      if (k === "F") { ev.preventDefault(); go("downloads"); return; }
+      if (k === "D") { ev.preventDefault(); go("doors"); return; }
+      if (k === "A") { ev.preventDefault(); go("about"); return; }
+      if (k === "G") { ev.preventDefault(); go("goodbye"); return; }
+      if (k === "W") { ev.preventDefault(); go("product", "write65"); return; }
     }
 
     if (state.view === "downloads") {
@@ -784,6 +768,13 @@
     });
 
     document.addEventListener("keydown", handleGlobalKey);
+
+    const help = $("help-dialog");
+    if (help) {
+      help.addEventListener("close", () => {
+        if (help.returnValue === "menu") go("menu");
+      });
+    }
   }
 
   async function boot() {
@@ -819,7 +810,6 @@
     if (saved && !reduced) {
       // Returning caller: short reconnect, then menu.
       showPanel("intro");
-      setFooter("ESC or S = SKIP   ·   F = FILE SECTION   ·   D = DOORS");
       await typeLines($("intro-log"), [
         { text: "CARRIER RESTORED", cls: "ok", pause: 200 },
         { text: `WELCOME BACK, ${saved}.`, cls: "info", pause: 200 },

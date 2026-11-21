@@ -28,14 +28,12 @@
             <p id="body">That path is not on this board.</p>
             <p class="dim" id="path"></p>
             <nav class="menu">
-              <a class="menu-item" href="/"><kbd>B</kbd> Back to FranticBytes</a>
-              <a class="menu-item" href="/#/write65/downloads"><kbd>F</kbd> File Section</a>
-              <a class="menu-item" href="/#/doors"><kbd>D</kbd> Doors</a>
+              <a class="menu-item" href="/#/menu"><kbd>M</kbd> Main Menu</a>
             </nav>
           </section>
         </main>
         <footer class="status-bar footer-bar">
-          <span id="footer-left">www.franticbytes.com</span>
+          <span id="footer-left"></span>
           <span id="footer-right" class="sysop-corner">
             <span class="sysop-name">SYSOP: Lord Frazzle</span>
             <span class="presence" id="sysop-presence"><span class="dot" aria-hidden="true"></span><span class="presence-label"></span></span>
@@ -101,16 +99,21 @@
       }
       function paintClock() {
         var clock = document.getElementById("status-clock");
-        if (clock) clock.textContent = boardClock();
         var right = document.getElementById("status-right");
+        if (right) right.innerHTML = '<span class="status-clock" id="status-clock">' + boardClock() + '</span>';
+        else if (clock) clock.textContent = boardClock();
+        var left = document.getElementById("footer-left");
         try {
           var start = sessionStorage.getItem("fb_session_start");
-          if (start && right) {
+          if (start && left) {
             var onMin = Math.max(0, Math.floor((Date.now() - Number(start)) / 60000));
-            var left = Math.max(0, 60 - onMin);
-            right.innerHTML = '<span class="status-timeon">TIME ON: ' + onMin + '</span>' +
-              '<span class="status-timeleft">TIME LEFT: ' + left + '</span>' +
-              '<span class="status-clock" id="status-clock">' + boardClock() + '</span>';
+            var remain = Math.max(0, 60 - onMin);
+            var handle = "GUEST";
+            try { handle = localStorage.getItem("fb_handle") || "GUEST"; } catch (e2) {}
+            var lvl = sessionStorage.getItem("fb_session_level") || "";
+            left.innerHTML = '<span class="session-handle">' + handle + '</span>  ' +
+              (lvl ? ('LVL ' + lvl + '  ') : '') +
+              '<span class="status-timeleft">TIME LEFT: ' + remain + '</span>';
           }
         } catch (e) {}
       }
