@@ -519,7 +519,7 @@
       { text: "HANGING UP...", pause: 360 },
       { text: "NO CARRIER", cls: "err", pause: 200 },
     ]);
-    const btn = panels.goodbye.querySelector("[data-go='menu']");
+    const btn = panels.goodbye.querySelector("[data-go='connect']");
     if (btn) btn.focus();
   }
 
@@ -671,6 +671,8 @@
       if (state.view === "login") {
         finishLogin("GUEST");
         go("menu");
+      } else if (state.view === "goodbye") {
+        return;
       } else if (state.view !== "menu" && state.view !== "intro") {
         go("menu");
       } else if (state.view === "intro") {
@@ -682,6 +684,12 @@
     }
 
     const k = key.length === 1 ? key.toUpperCase() : key;
+
+    if (k === "R" && state.view === "goodbye") {
+      ev.preventDefault();
+      go("connect");
+      return;
+    }
 
     if (state.view === "menu") {
       if (k === "F") { ev.preventDefault(); go("downloads"); return; }
