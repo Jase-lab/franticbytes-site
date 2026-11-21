@@ -19,6 +19,13 @@
       "name": "Lemonade Stand",
       "status": "open",
       "blurb": "Run a lemonade stand in Lemonsville for 30 days."
+    },
+    {
+      "id": "freshwater-fishing",
+      "key": "3",
+      "name": "Freshwater Fishing",
+      "status": "open",
+      "blurb": "Motor out, read the depth, and see what's biting."
     }
   ],
   "products": [

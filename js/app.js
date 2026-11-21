@@ -534,7 +534,6 @@
     rows.forEach((door) => {
       const li = document.createElement("li");
       const status = door.status || (door.url ? "open" : "coming_soon");
-      const statusLabel = status === "out_of_order" ? "OUT OF ORDER" : status === "open" ? "READY" : "COMING SOON";
       const title = door.name || ("DOOR " + (door.key || ""));
       const isOpenLink = status === "open" && door.url;
       const isPlayable = status === "open" && !door.url;
@@ -544,7 +543,7 @@
       if (isOpenLink) el.href = door.url;
       el.dataset.door = door.id || "";
       el.dataset.status = status;
-      el.innerHTML = `<kbd>${escapeHtml(door.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(title)}</span><span class="door-status ${status === "out_of_order" ? "out-of-order" : status === "open" ? "ready" : "coming-soon"}">${escapeHtml(statusLabel)}</span>${door.blurb ? `<span class="dl-notes">${escapeHtml(door.blurb)}</span>` : ""}</span>`;
+      el.innerHTML = `<kbd>${escapeHtml(door.key || "")}</kbd><span class="dl-meta"><span class="dl-title">${escapeHtml(title)}</span>${door.blurb ? `<span class="dl-notes">${escapeHtml(door.blurb)}</span>` : ""}</span>`;
       if (isPlayable) {
         el.addEventListener("click", (ev) => {
           ev.preventDefault();
@@ -625,6 +624,17 @@
       actions.hidden = true;
       actions.innerHTML = "";
     }
+  }
+
+  function hideFishPanel() {
+    if (state.fish && state.fish.hookTimer) {
+      clearTimeout(state.fish.hookTimer);
+      state.fish.hookTimer = 0;
+    }
+    const panel = $("fish-panel");
+    if (panel) panel.hidden = true;
+    const controls = $("fish-controls");
+    if (controls) controls.innerHTML = "";
   }
 
   function aceyCreditsLine() {
@@ -736,6 +746,7 @@
 
   function startAceyDeucey(reset) {
     hideLemonForms();
+    hideFishPanel();
     if (reset || aceyCredits() <= 0) setAceyCredits(AceyDeucey.START);
     else saveAceyHigh(aceyCredits());
     const log = $("door-log");
@@ -766,7 +777,369 @@
     showPanel("door");
     setHash("#/doors/" + door.id);
     if (door.id === "lemonade-stand") startLemonade();
+    else if (door.id === "freshwater-fishing") startFishing();
     else startAceyDeucey(false);
+  }
+
+  function setFishMsg(text, cls) {
+    const el = $("fish-msg");
+    if (!el) return;
+    el.className = "fish-msg" + (cls ? " " + cls : "");
+    el.textContent = text || "";
+  }
+
+  function renderFishView() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || !g.lake) return;
+    const cell = F.tileAt(g.lake, g.x, g.y);
+    const lure = F.lureById(g.lureId);
+    const status = $("fish-status");
+    if (status) {
+      status.textContent = g.lake.name + "              CASTS " + g.casts + "/" + F.CASTS_PER_DAY + "\n" +
+        "DEPTH " + cell.depth + " FT            BOTTOM " + cell.bottom + "\n" +
+        "LURE " + lure.name + "\nRETRIEVE " + g.speed;
+    }
+    const map = $("fish-map");
+    if (map) map.textContent = F.renderMap(g.lake, g.x, g.y, g.heading);
+  }
+
+  function showFishBoatControls() {
+    const box = $("fish-controls");
+    if (!box) return;
+    box.innerHTML = `<div class="fish-pad" role="group" aria-label="Steer the boat"><button type="button" class="btn" id="fish-up" data-fish-dir="ArrowUp" aria-label="North">↑</button><button type="button" class="btn" id="fish-left" data-fish-dir="ArrowLeft" aria-label="West">←</button><button type="button" class="btn" id="fish-down" data-fish-dir="ArrowDown" aria-label="South">↓</button><button type="button" class="btn" id="fish-right" data-fish-dir="ArrowRight" aria-label="East">→</button></div><div class="intro-actions fish-cmd"><button type="button" class="btn btn-amber" id="fish-cast">Cast</button><button type="button" class="btn" id="fish-lure">Lure</button><button type="button" class="btn" id="fish-speed">Speed</button><button type="button" class="btn" id="fish-records">Records</button></div>`;
+    Array.from(box.querySelectorAll("[data-fish-dir]")).forEach((btn) => {
+      btn.addEventListener("click", () => moveFishBoat(btn.getAttribute("data-fish-dir")));
+    });
+    $("fish-cast").addEventListener("click", fishCast);
+    $("fish-lure").addEventListener("click", fishShowLures);
+    $("fish-speed").addEventListener("click", fishShowSpeeds);
+    $("fish-records").addEventListener("click", fishShowRecords);
+  }
+
+  function isFishBoatMode() {
+    return state.view === "door" && state.doorId === "freshwater-fishing" && state.fish && state.fish.phase === "boat";
+  }
+
+  function moveFishBoat(key) {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!isFishBoatMode() || !g) return;
+    const next = F.moveBoat(g.lake, g.x, g.y, g.heading, key);
+    g.x = next.x;
+    g.y = next.y;
+    g.heading = next.heading;
+    renderFishView();
+    if (!next.moved) setFishMsg("SHALLOW...  THAT'S THE BANK.");
+    else setFishMsg("");
+  }
+
+  function startFishing() {
+    hideAceyForms();
+    hideLemonForms();
+    hideFishPanel();
+    state.acey = null;
+    state.lemon = null;
+    state.fish = { phase: "intro" };
+    const log = $("door-log");
+    if (log) log.innerHTML = "";
+    const panel = $("fish-panel");
+    if (panel) panel.hidden = true;
+    [
+      "FRESHWATER FISHING",
+      "",
+      "MOTOR OUT ON THE LAKE, READ THE DEPTH",
+      "AND THE BOTTOM, PICK A LURE AND A",
+      "RETRIEVE SPEED, AND CAST.  WHEN YOU GET",
+      "A NIBBLE OR A STRIKE, SET THE HOOK",
+      "QUICK.  THEN REEL OR GIVE SLACK SO YOUR",
+      "LINE DON'T SNAP.",
+      "",
+      "USE THE ARROW KEYS TO STEER THE BOAT",
+      "(OR THE BUTTONS, IF YOU'RE ON A PHONE).",
+      "YOU GET 8 CASTS TODAY.",
+      "",
+      "TIGHT LINES!"
+    ].forEach((line) => appendDoorLog(line));
+    if (panel) panel.hidden = false;
+    const st = $("fish-status");
+    if (st) st.textContent = "";
+    const mp = $("fish-map");
+    if (mp) mp.textContent = "";
+    setFishMsg("");
+    const host = $("fish-controls");
+    if (host) {
+      host.innerHTML = `<div class="intro-actions"><button type="button" class="btn btn-amber" id="fish-continue">Continue</button></div>`;
+      $("fish-continue").addEventListener("click", fishChooseLake);
+      $("fish-continue").focus();
+    }
+  }
+
+  function fishChooseLake() {
+    const F = FreshwaterFishing;
+    const log = $("door-log");
+    if (log) log.innerHTML = "";
+    appendDoorLog("WHICH LAKE ARE YOU HEADED FOR?");
+    appendDoorLog("");
+    state.fish = { phase: "lake" };
+    const panel = $("fish-panel");
+    if (panel) panel.hidden = false;
+    const st = $("fish-status"); if (st) st.textContent = "";
+    const mp = $("fish-map"); if (mp) mp.textContent = "";
+    setFishMsg("");
+    const box = $("fish-controls");
+    if (!box) return;
+    box.innerHTML = `<div class="intro-actions">${F.LAKES.map((lake, i) => `<button type="button" class="btn ${i === 0 ? "btn-amber" : ""}" data-fish-lake="${lake.id}"><kbd>${i + 1}</kbd> ${escapeHtml(lake.name)}</button>`).join("")}</div>`;
+    Array.from(box.querySelectorAll("[data-fish-lake]")).forEach((btn) => {
+      btn.addEventListener("click", () => fishLaunch(btn.getAttribute("data-fish-lake")));
+    });
+    const first = box.querySelector("button");
+    if (first) first.focus();
+  }
+
+  function fishLaunch(lakeId) {
+    const F = FreshwaterFishing;
+    const lake = F.lakeById(lakeId);
+    const dock = F.findDock(lake);
+    const log = $("door-log");
+    if (log) log.innerHTML = "";
+    state.fish = {
+      phase: "boat",
+      lake: lake,
+      x: dock.x,
+      y: dock.y,
+      heading: "N",
+      lureId: "worm4",
+      speed: "SLOW",
+      casts: 0,
+      catch: [],
+      hookTimer: 0
+    };
+    const panel = $("fish-panel");
+    if (panel) panel.hidden = false;
+    setFishMsg("PUT IN AT THE DOCK.  MOTOR OUT AND CAST.");
+    renderFishView();
+    showFishBoatControls();
+    const cast = $("fish-cast");
+    if (cast) cast.focus();
+  }
+
+  function fishShowLures() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || g.phase !== "boat") return;
+    g.phase = "lure";
+    setFishMsg("PICK YOUR LURE.");
+    const box = $("fish-controls");
+    if (!box) return;
+    box.innerHTML = `<div class="intro-actions">${F.LURES.map((lure) => `<button type="button" class="btn ${lure.id === g.lureId ? "btn-amber" : ""}" data-fish-lure="${lure.id}">${escapeHtml(lure.name)}</button>`).join("")}<button type="button" class="btn" id="fish-back">Back</button></div>`;
+    Array.from(box.querySelectorAll("[data-fish-lure]")).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.fish.lureId = btn.getAttribute("data-fish-lure");
+        state.fish.phase = "boat";
+        setFishMsg("TIED ON A " + F.lureById(state.fish.lureId).name + ".");
+        renderFishView();
+        showFishBoatControls();
+      });
+    });
+    $("fish-back").addEventListener("click", () => {
+      state.fish.phase = "boat";
+      setFishMsg("");
+      showFishBoatControls();
+    });
+  }
+
+  function fishShowSpeeds() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || g.phase !== "boat") return;
+    g.phase = "speed";
+    setFishMsg("RETRIEVE SPEED?");
+    const box = $("fish-controls");
+    if (!box) return;
+    box.innerHTML = `<div class="intro-actions">${F.SPEEDS.map((sp) => `<button type="button" class="btn ${sp === g.speed ? "btn-amber" : ""}" data-fish-speed="${sp}">${sp}</button>`).join("")}<button type="button" class="btn" id="fish-back">Back</button></div>`;
+    Array.from(box.querySelectorAll("[data-fish-speed]")).forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.fish.speed = btn.getAttribute("data-fish-speed");
+        state.fish.phase = "boat";
+        setFishMsg("RETRIEVE SET TO " + state.fish.speed + ".");
+        renderFishView();
+        showFishBoatControls();
+      });
+    });
+    $("fish-back").addEventListener("click", () => {
+      state.fish.phase = "boat";
+      setFishMsg("");
+      showFishBoatControls();
+    });
+  }
+
+  function fishShowRecords() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || (g.phase !== "boat" && g.phase !== "dayend")) return;
+    const from = g.phase;
+    g.phase = "records";
+    const rec = F.loadRecords();
+    const names = F.SPECIES.map((s) => s.name);
+    const lines = ["PERSONAL BESTS", ""];
+    let any = false;
+    names.forEach((name) => {
+      if (rec[name]) {
+        any = true;
+        lines.push(name + "  " + F.formatWeight(rec[name].ounces) + "  " + rec[name].lake);
+      }
+    });
+    if (!any) lines.push("NO RECORDS YET.  GO CATCH SOMETHING.");
+    setFishMsg("");
+    const box = $("fish-controls");
+    if (!box) return;
+    box.innerHTML = `<pre class="fish-status">${escapeHtml(lines.join("\n"))}</pre><div class="intro-actions"><button type="button" class="btn btn-amber" id="fish-back">Back</button></div>`;
+    $("fish-back").addEventListener("click", () => {
+      state.fish.phase = from;
+      if (from === "dayend") fishShowDayEnd();
+      else {
+        setFishMsg("");
+        renderFishView();
+        showFishBoatControls();
+      }
+    });
+    $("fish-back").focus();
+  }
+
+  function fishAfterCast() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g) return;
+    if (g.casts >= F.CASTS_PER_DAY) {
+      fishShowDayEnd();
+      return;
+    }
+    g.phase = "boat";
+    renderFishView();
+    showFishBoatControls();
+  }
+
+  function fishShowDayEnd() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g) return;
+    g.phase = "dayend";
+    const lines = ["THE SUN IS GETTING LOW.  TIME TO HEAD IN.", "", "TODAY'S CATCH:"];
+    if (!g.catch.length) lines.push("  DIDN'T LAND A ONE TODAY.");
+    else {
+      g.catch.forEach((c) => {
+        lines.push("  " + c.species + "  " + F.formatWeight(c.ounces) + "  " + c.lake);
+      });
+    }
+    setFishMsg("");
+    const box = $("fish-controls");
+    if (!box) return;
+    box.innerHTML = `<pre class="fish-status">${escapeHtml(lines.join("\n"))}</pre><div class="intro-actions"><button type="button" class="btn btn-amber" id="fish-again">Fish again</button><button type="button" class="btn" id="fish-rec-end">Records</button><button type="button" class="btn" id="fish-quit">Quit to Doors</button></div>`;
+    $("fish-again").addEventListener("click", startFishing);
+    $("fish-rec-end").addEventListener("click", fishShowRecords);
+    $("fish-quit").addEventListener("click", () => go("doors"));
+    $("fish-again").focus();
+  }
+
+  function fishCast() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || g.phase !== "boat") return;
+    if (g.casts >= F.CASTS_PER_DAY) {
+      fishShowDayEnd();
+      return;
+    }
+    g.casts += 1;
+    const cell = F.tileAt(g.lake, g.x, g.y);
+    g.phase = "wait";
+    renderFishView();
+    setFishMsg("CASTING...");
+    const box = $("fish-controls");
+    if (box) box.innerHTML = "";
+    if (g.hookTimer) clearTimeout(g.hookTimer);
+    g.hookTimer = setTimeout(() => {
+      const bite = F.rollBite(cell, F.lureById(g.lureId), g.speed);
+      if (!bite.bite) {
+        setFishMsg("NOTHING.  TRY ANOTHER SPOT.");
+        fishAfterCast();
+        return;
+      }
+      g.pending = bite;
+      g.phase = "hook";
+      g.hookStart = Date.now();
+      setFishMsg(bite.kind + "!  SET THE HOOK!", "warn");
+      if (box) {
+        box.innerHTML = `<div class="intro-actions"><button type="button" class="btn btn-amber" id="fish-hook">Set the hook</button></div>`;
+        $("fish-hook").addEventListener("click", () => fishSetHook(true));
+        $("fish-hook").focus();
+      }
+      g.hookTimer = setTimeout(() => fishSetHook(false), bite.window);
+    }, 700 + Math.floor(Math.random() * 800));
+  }
+
+  function fishSetHook(manual) {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || g.phase !== "hook") return;
+    if (g.hookTimer) {
+      clearTimeout(g.hookTimer);
+      g.hookTimer = 0;
+    }
+    const elapsed = Date.now() - (g.hookStart || 0);
+    const windowMs = (g.pending && g.pending.window) || 1100;
+    const ok = manual && F.hookHit(elapsed, windowMs);
+    if (!ok) {
+      setFishMsg(manual ? "YOU MISSED HIM." : "TOO LATE!  IT GOT AWAY.", "err");
+      fishAfterCast();
+      return;
+    }
+    setFishMsg("HE'S ON!  REEL OR GIVE SLACK.", "ok");
+    g.fight = F.startFight(g.pending.ounces);
+    g.phase = "fight";
+    fishRenderFight();
+  }
+
+  function fishRenderFight() {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || !g.fight || !g.pending) return;
+    const fight = g.fight;
+    const name = g.pending.species.name;
+    const box = $("fish-controls");
+    if (box) {
+      box.innerHTML = `<pre class="fish-status">FIGHTING A ${escapeHtml(name)}\nLINE TENSION  ${escapeHtml(F.tensionBar(fight.tension))}\n${escapeHtml(fight.note || "")}</pre><div class="intro-actions"><button type="button" class="btn btn-amber" id="fish-reel">Reel</button><button type="button" class="btn" id="fish-slack">Give slack</button></div>`;
+      $("fish-reel").addEventListener("click", () => fishFight("reel"));
+      $("fish-slack").addEventListener("click", () => fishFight("slack"));
+      $("fish-reel").focus();
+    }
+  }
+
+  function fishFight(action) {
+    const F = FreshwaterFishing;
+    const g = state.fish;
+    if (!g || g.phase !== "fight" || !g.fight || !g.pending) return;
+    g.fight = F.fightAction(g.fight, action);
+    if (g.fight.snapped) {
+      setFishMsg("SNAP!  YOUR LINE BROKE.", "err");
+      fishAfterCast();
+      return;
+    }
+    if (g.fight.lost) {
+      setFishMsg("HE THREW THE HOOK!", "err");
+      fishAfterCast();
+      return;
+    }
+    if (g.fight.landed) {
+      const recs = F.loadRecords();
+      const best = F.updateRecords(recs, g.pending.species.name, g.pending.ounces, g.lake.name);
+      if (best) F.saveRecords(recs);
+      g.catch.push({ species: g.pending.species.name, ounces: g.pending.ounces, lake: g.lake.name });
+      setFishMsg("YOU CAUGHT A " + F.formatWeight(g.pending.ounces) + " " + g.pending.species.name + "!" + (best ? "  A NEW PERSONAL BEST!" : ""), "ok");
+      fishAfterCast();
+      return;
+    }
+    fishRenderFight();
   }
 
   function appendLemonPre(text, cls) {
@@ -824,6 +1197,7 @@
     const L = LemonadeStand;
     hideAceyForms();
     hideLemonForms();
+    hideFishPanel();
     state.acey = null;
     state.lemon = { day: 0, assets: L.START_CENTS, phase: "intro" };
     const log = $("door-log");
@@ -1138,6 +1512,7 @@
 
   function go(name, productId) {
     cancelType();
+    hideFishPanel();
     if (name === "door") {
       showDoor(productId || state.doorId || "acey-deucey");
       return;
@@ -1207,6 +1582,12 @@
     }
 
     const typing = isTypingInField(ev.target);
+
+    if (!typing && state.view === "door" && state.doorId === "freshwater-fishing" && state.fish && state.fish.phase === "boat" && (key === "ArrowDown" || key === "ArrowUp" || key === "ArrowLeft" || key === "ArrowRight")) {
+      ev.preventDefault();
+      moveFishBoat(key);
+      return;
+    }
 
     if ((key === "ArrowDown" || key === "ArrowUp") && !typing) {
       const panel = panels[state.view];
@@ -1323,6 +1704,38 @@
       if (state.doorId === "acey-deucey" && state.acey && state.acey.phase === "result" && (key === "Enter" || key === " ")) {
         ev.preventDefault();
         dealAceyHand();
+      }
+      if (state.doorId === "freshwater-fishing" && state.fish) {
+        if (state.fish.phase === "intro" && (key === "Enter" || key === " ")) {
+          ev.preventDefault();
+          fishChooseLake();
+          return;
+        }
+        if (state.fish.phase === "lake" && (k === "1" || k === "2")) {
+          ev.preventDefault();
+          const lake = FreshwaterFishing.LAKES[Number(k) - 1];
+          if (lake) fishLaunch(lake.id);
+          return;
+        }
+        if (state.fish.phase === "boat" && k === "C") {
+          ev.preventDefault();
+          fishCast();
+          return;
+        }
+        if (state.fish.phase === "hook" && (key === "Enter" || key === " " || k === "H")) {
+          ev.preventDefault();
+          fishSetHook(true);
+          return;
+        }
+        if (state.fish.phase === "fight") {
+          if (k === "R") { ev.preventDefault(); fishFight("reel"); return; }
+          if (k === "G") { ev.preventDefault(); fishFight("slack"); return; }
+        }
+        if (state.fish.phase === "dayend" && (k === "Y" || key === "Enter")) {
+          ev.preventDefault();
+          startFishing();
+          return;
+        }
       }
       if (state.doorId === "lemonade-stand" && state.lemon) {
         if (state.lemon.phase === "intro" && (key === "Enter" || key === " ")) {
