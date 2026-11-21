@@ -1,0 +1,54 @@
+{
+  "site": {
+    "name": "FranticBytes",
+    "tagline": "Retro software for the MEGA65 and beyond",
+    "sysop": "Jase",
+    "canonicalHost": "www.franticbytes.com"
+  },
+  "products": [
+    {
+      "id": "write65",
+      "name": "Write65",
+      "version": "0.8.0",
+      "stage": "beta",
+      "tagline": "A retro-style Markdown editor for the MEGA65 \u2014 and a desktop twin for Mac, PC, and Linux.",
+      "blurb": "Write65 is a white-on-blue, F-key driven editor built for the MEGA65. The desktop edition is a pixel-accurate clone: the same menus, the same .w65 files (ISO-8859-15, 64 KB), plus themes, OS file dialogs, and MEGA65 import and export.",
+      "downloadsDir": "downloads/write65",
+      "downloads": [
+        {
+          "id": "mega65",
+          "key": "1",
+          "label": "MEGA65 disk image",
+          "platform": "MEGA65",
+          "filename": "write65-0.8.0.d81",
+          "notes": "800 KB .d81 disk image. Copy to the SD card as MEGA65.D81 so Hyppo auto-mounts unit 8."
+        },
+        {
+          "id": "macos",
+          "key": "2",
+          "label": "Mac",
+          "platform": "macOS",
+          "filename": "Write65-0.8.0-macos.zip",
+          "notes": "macOS app bundle."
+        },
+        {
+          "id": "windows",
+          "key": "3",
+          "label": "PC (Windows)",
+          "platform": "Windows",
+          "filename": "Write65-0.8.0-windows.zip",
+          "notes": "Windows build, including mega65-ftp tools."
+        },
+        {
+          "id": "linux",
+          "key": "4",
+          "label": "Linux",
+          "platform": "Linux",
+          "filename": "Write65-0.8.0-x86_64.AppImage",
+          "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
+        }
+      ],
+      "menuKey": "W"
+    }
+  ]
+}

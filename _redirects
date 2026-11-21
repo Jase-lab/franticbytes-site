@@ -1,0 +1,6 @@
+# This project is served at https://www.franticbytes.com
+# The apex domain franticbytes.com is not assumed to work: DNS stays at
+# Microsoft 365, which cannot CNAME the root. If the apex is ever pointed
+# at this Pages project, send it to www.
+https://franticbytes.com/*  https://www.franticbytes.com/:splat  301
+http://franticbytes.com/*   https://www.franticbytes.com/:splat  301

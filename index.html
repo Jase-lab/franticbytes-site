@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#03140a">
+  <title>FranticBytes BBS — retro software for the MEGA65 and beyond</title>
+  <meta name="description" content="FranticBytes is a retro software board. Download Write65, a Markdown editor for the MEGA65, plus desktop versions for Mac, Windows, and Linux.">
+  <link rel="canonical" href="https://www.franticbytes.com/">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/vt323/VT323-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="application/json" id="products-fallback">
+  {
+    "site": {
+      "name": "FranticBytes",
+      "tagline": "Retro software for the MEGA65 and beyond",
+      "sysop": "Jase",
+      "canonicalHost": "www.franticbytes.com"
+    },
+    "products": [
+      {
+        "id": "write65",
+        "menuKey": "W",
+        "name": "Write65",
+        "version": "0.8.0",
+        "stage": "beta",
+        "tagline": "A retro-style Markdown editor for the MEGA65 — and a desktop twin for Mac, PC, and Linux.",
+        "blurb": "Write65 is a white-on-blue, F-key driven editor built for the MEGA65. The desktop edition is a pixel-accurate clone: the same menus, the same .w65 files (ISO-8859-15, 64 KB), plus themes, OS file dialogs, and MEGA65 import and export.",
+        "downloadsDir": "downloads/write65",
+        "downloads": [
+          {
+            "id": "mega65",
+            "key": "1",
+            "label": "MEGA65 disk image",
+            "platform": "MEGA65",
+            "filename": "write65-0.8.0.d81",
+            "notes": "800 KB .d81 disk image. Copy to the SD card as MEGA65.D81 so Hyppo auto-mounts unit 8."
+          },
+          {
+            "id": "macos",
+            "key": "2",
+            "label": "Mac",
+            "platform": "macOS",
+            "filename": "Write65-0.8.0-macos.zip",
+            "notes": "macOS app bundle."
+          },
+          {
+            "id": "windows",
+            "key": "3",
+            "label": "PC (Windows)",
+            "platform": "Windows",
+            "filename": "Write65-0.8.0-windows.zip",
+            "notes": "Windows build, including mega65-ftp tools."
+          },
+          {
+            "id": "linux",
+            "key": "4",
+            "label": "Linux",
+            "platform": "Linux",
+            "filename": "Write65-0.8.0-x86_64.AppImage",
+            "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#downloads" id="skip-to-downloads">Skip handshake — go to downloads</a>
+
+  <div class="crt" id="crt">
+    <div class="bezel">
+      <div class="screen-wrap">
+        <div class="scanlines" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+
+        <header class="status-bar" role="banner">
+          <span id="status-left">FRANTICBYTES  //  NODE 1  //  2400 8-N-1</span>
+          <span id="status-right"></span>
+        </header>
+
+        <main id="app" class="screen" tabindex="-1">
+          <div id="intro" class="panel" hidden>
+            <div id="intro-log" class="log" aria-live="polite"></div>
+            <div class="intro-actions">
+              <button type="button" class="btn" id="btn-skip" title="Skip handshake (Esc or S)">Skip intro</button>
+              <button type="button" class="btn btn-amber" id="btn-skip-dl" title="Jump to Write65 downloads (D)">Downloads</button>
+            </div>
+          </div>
+
+          <section id="login" class="panel" hidden>
+            <h1 class="wordmark" aria-label="FranticBytes">
+              <span class="w1">FRANTIC</span><span class="w2">BYTES</span>
+            </h1>
+            <p class="banner-sub">RETRO SOFTWARE BOARD  ·  NODE 1  ·  PUBLIC ACCESS</p>
+            <p class="rule" aria-hidden="true">========================================</p>
+            <p>This is a public board. No password, no account — just a handle so we can say hello.</p>
+            <form id="login-form" autocomplete="on">
+              <label for="handle-input">Enter your handle, or type GUEST:</label>
+              <div class="prompt-row">
+                <span class="prompt" aria-hidden="true">&gt;</span>
+                <input id="handle-input" name="handle" type="text" maxlength="24" autocomplete="nickname" spellcheck="false" enterkeyhint="go" autocapitalize="off">
+                <span class="block-cursor" aria-hidden="true"></span>
+              </div>
+              <div class="intro-actions">
+                <button type="submit" class="btn">Connect</button>
+                <button type="button" class="btn" id="btn-guest">Enter as guest</button>
+              </div>
+            </form>
+          </section>
+
+          <section id="menu" class="panel" hidden>
+            <h1 class="wordmark" aria-label="FranticBytes">
+              <span class="w1">FRANTIC</span><span class="w2">BYTES</span>
+            </h1>
+            <p class="banner-sub">MAIN MENU</p>
+            <p class="rule" aria-hidden="true">========================================</p>
+            <p id="welcome-line" class="dim"></p>
+            <nav class="menu" id="main-menu" aria-label="Main menu"></nav>
+          </section>
+
+          <section id="product" class="panel" hidden>
+            <div id="product-body"></div>
+            <nav class="menu" id="product-menu" aria-label="Product menu"></nav>
+          </section>
+
+          <section id="downloads" class="panel" hidden>
+            <h2 id="downloads-title">Downloads</h2>
+            <p id="downloads-lead" class="dim"></p>
+            <ul class="menu download-list" id="download-list"></ul>
+            <nav class="menu" id="downloads-nav" aria-label="Downloads navigation"></nav>
+          </section>
+
+          <section id="about" class="panel" hidden>
+            <h2>About the board</h2>
+            <p class="rule" aria-hidden="true">========================================</p>
+            <p>FranticBytes is a tiny retro software publisher run by Jase. The board is a pretend BBS — a handshake, a handle, a menu — in front of a real download area.</p>
+            <p>The first product is <strong>Write65</strong>, a Markdown editor for the <a href="https://mega65.org/" rel="noopener noreferrer">MEGA65</a>, with matching desktop builds for Mac, Windows, and Linux. More titles will show up here as they ship. The catalog is data-driven, so new products can be added without redesigning the board.</p>
+            <p>This site lives at <strong>www.franticbytes.com</strong>.</p>
+            <nav class="menu" aria-label="About navigation">
+              <button type="button" class="menu-item" data-go="menu"><kbd>B</kbd> Back to main menu</button>
+            </nav>
+          </section>
+
+          <section id="goodbye" class="panel" hidden>
+            <h2>Log off</h2>
+            <pre class="log" id="goodbye-log"></pre>
+            <nav class="menu" aria-label="Reconnect">
+              <button type="button" class="menu-item" data-go="connect"><kbd>R</kbd> Redial FranticBytes</button>
+            </nav>
+          </section>
+
+          <noscript>
+            <section class="panel noscript" id="noscript-board">
+              <h1 class="wordmark" aria-label="FranticBytes">
+                <span class="w1">FRANTIC</span><span class="w2">BYTES</span>
+              </h1>
+              <p class="banner-sub">RETRO SOFTWARE BOARD  ·  PUBLIC ACCESS</p>
+              <p class="rule" aria-hidden="true">========================================</p>
+              <p>JavaScript is off, so the modem handshake is skipped. You can still read the board and grab files below.</p>
+              <h2>Write65 <span class="dim">v0.8.0 beta</span></h2>
+              <p>A retro-style Markdown editor for the MEGA65 — and a desktop twin for Mac, PC, and Linux. White-on-blue, F-key menus, and <code>.w65</code> files that match the MEGA65 (ISO-8859-15, 64 KB).</p>
+              <h3 id="noscript-downloads">Downloads</h3>
+              <ul class="download-list static-list">
+                <li><a href="downloads/write65/write65-0.8.0.d81">MEGA65 disk image — write65-0.8.0.d81</a></li>
+                <li><a href="downloads/write65/Write65-0.8.0-macos.zip">Mac — Write65-0.8.0-macos.zip</a></li>
+                <li><a href="downloads/write65/Write65-0.8.0-windows.zip">PC (Windows) — Write65-0.8.0-windows.zip</a></li>
+                <li><a href="downloads/write65/Write65-0.8.0-x86_64.AppImage">Linux — Write65-0.8.0-x86_64.AppImage</a></li>
+              </ul>
+              <p class="dim">If a link is missing, that build has not been uploaded yet.</p>
+            </section>
+          </noscript>
+        </main>
+
+        <footer class="status-bar footer-bar" role="contentinfo">
+          <span id="footer-left">ESC=BACK  ·  S=SKIP  ·  D=DOWNLOADS  ·  ?=HELP</span>
+          <span id="footer-right"></span>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="coming-soon" class="bbs-dialog" aria-labelledby="soon-title">
+    <h2 id="soon-title">*** COMING SOON ***</h2>
+    <p id="soon-body">That build is not on the board yet.</p>
+    <p class="dim" id="soon-file"></p>
+    <form method="dialog">
+      <button type="submit" class="btn btn-amber" id="soon-ok" value="ok">OK</button>
+    </form>
+  </dialog>
+
+  <dialog id="help-dialog" class="bbs-dialog" aria-labelledby="help-title">
+    <h2 id="help-title">Keys</h2>
+    <ul class="help-list">
+      <li><kbd>Esc</kbd> or <kbd>B</kbd> — back / skip handshake</li>
+      <li><kbd>S</kbd> — skip handshake to the main menu</li>
+      <li><kbd>D</kbd> — jump to Write65 downloads</li>
+      <li><kbd>W</kbd> — Write65</li>
+      <li><kbd>A</kbd> — about the board</li>
+      <li><kbd>G</kbd> — goodbye / log off</li>
+      <li><kbd>1</kbd>–<kbd>4</kbd> — pick a download</li>
+      <li><kbd>?</kbd> — this help</li>
+    </ul>
+    <p class="dim">Everything is also a button or a link. Tab, enter, and touch all work.</p>
+    <form method="dialog">
+      <button type="submit" class="btn" value="ok">Close</button>
+    </form>
+  </dialog>
+
+  <script src="js/app.js" defer></script>
+</body>
+</html>

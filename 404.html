@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#03140a">
+  <title>File not found — FranticBytes BBS</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://www.franticbytes.com/">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="crt">
+    <div class="bezel">
+      <div class="screen-wrap">
+        <div class="scanlines" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+        <header class="status-bar">
+          <span>FRANTICBYTES  //  NODE 1  //  2400 8-N-1</span>
+          <span>SYSOP: JASE  ·  ERROR 404</span>
+        </header>
+        <main class="screen">
+          <section class="panel">
+            <h1 id="title">*** FILE NOT FOUND ***</h1>
+            <p class="rule" aria-hidden="true">========================================</p>
+            <p id="body">That path is not on this board.</p>
+            <p class="dim" id="path"></p>
+            <nav class="menu">
+              <a class="menu-item" href="/"><kbd>B</kbd> Back to FranticBytes</a>
+              <a class="menu-item" href="/#/write65/downloads"><kbd>D</kbd> Write65 downloads</a>
+            </nav>
+          </section>
+        </main>
+        <footer class="status-bar footer-bar">
+          <span>www.franticbytes.com</span>
+          <span></span>
+        </footer>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var path = location.pathname || "/";
+      document.getElementById("path").textContent = "Requested: " + path;
+      if (/\/downloads\//i.test(path)) {
+        document.title = "Coming soon — FranticBytes BBS";
+        document.getElementById("title").textContent = "*** COMING SOON ***";
+        document.getElementById("body").textContent =
+          "That build has not been uploaded to the board yet. Check back after the next drop.";
+      }
+    })();
+  </script>
+</body>
+</html>
