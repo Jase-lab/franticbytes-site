@@ -152,18 +152,20 @@
   }
 
   function sessionLevel() {
+    if (!state.handle || state.handle === "GUEST") return 1;
+    const pick = () => 10 + Math.floor(Math.random() * 90);
     try {
       const key = "fb_session_level";
       const existing = sessionStorage.getItem(key);
       if (existing && /^\d+$/.test(existing)) {
         const n = Number(existing);
-        if (n >= 0 && n <= 99) return n;
+        if (n >= 10 && n <= 99) return n;
       }
-      const n = Math.floor(Math.random() * 100);
+      const n = pick();
       sessionStorage.setItem(key, String(n));
       return n;
     } catch {
-      if (state._level === undefined) state._level = Math.floor(Math.random() * 100);
+      if (state._level === undefined) state._level = pick();
       return state._level;
     }
   }
