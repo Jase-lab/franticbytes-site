@@ -384,7 +384,7 @@
     });
 
     const extras = [
-      { go: "downloads", key: "F", label: "File Section" },
+      { go: "downloads", key: "F", label: "Files" },
       { go: "doors", key: "D", label: "Doors" },
       { go: "about", key: "A", label: "About the board" },
       { go: "goodbye", key: "G", label: "Goodbye / log off" },
@@ -438,7 +438,7 @@
     const product = productById(id) || firstProduct();
     if (!product) return showMenu();
     state.productId = product.id;
-    $("downloads-title").textContent = `${product.name} File Section`;
+    $("downloads-title").textContent = `${product.name} Files`;
     $("downloads-lead").textContent = `This File Area has the ${product.name} drops for version ${product.version}${product.stage ? " (" + product.stage + ")" : ""}. If a file is not on the board yet, you will see COMING SOON instead of a broken link.`;
     const list = $("download-list");
     list.innerHTML = "";
