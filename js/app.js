@@ -1,4 +1,4 @@
-/* FranticBytes BBS — handshake, fake login, data-driven catalog */
+/* FranticBBS Stuff */
 (function () {
   "use strict";
 
