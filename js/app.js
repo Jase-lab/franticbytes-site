@@ -127,7 +127,7 @@
     const handle = greetName();
     const lvl = sessionLevel();
     const left = sess.left;
-    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">  LVL ${lvl}  <span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
+    el.innerHTML = `<span class="session-handle">${escapeHtml(handle)}</span><span class="session-meta">&nbsp;&nbsp;LVL ${lvl}&nbsp;&nbsp;<span class="status-timeleft"><span class="ft-full">TIME LEFT: ${left}</span><span class="ft-short">TL:${left}</span></span></span>`;
   }
 
   function renderStatusBar() {
