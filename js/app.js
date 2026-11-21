@@ -1523,6 +1523,7 @@
   function showSysop() {
     state.sysop = emptySysopDraft();
     if ($("sysop-form")) $("sysop-form").reset();
+    resetSysopTurnstile();
     showPanel("sysop");
     setHash("#/sysop");
     renderSysop();
@@ -1571,6 +1572,17 @@
     }
 
     setSysopStatus("FILING MESSAGE...");
+    let token = "";
+    try {
+      token = await getSysopTurnstileToken();
+    } catch (_) {
+      token = "";
+    }
+    if (!token) {
+      resetSysopTurnstile();
+      setSysopStatus("THE BOARD COULD NOT FILE THAT MESSAGE.", true);
+      return;
+    }
     const payload = {
       type: draft.type,
       handle: greetName(),
@@ -1578,6 +1590,7 @@
       email: draft.email,
       message: draft.message,
       fax: sysopHoneypot(),
+      "cf-turnstile-response": token,
     };
     try {
       const res = await fetch("/api/sysop", {
@@ -1587,6 +1600,7 @@
       });
       let data = null;
       try { data = await res.json(); } catch (_) { /* ignore */ }
+      resetSysopTurnstile();
       if (res.ok && data && data.ok) {
         draft.step = "done";
         renderSysop();
@@ -1594,7 +1608,98 @@
       }
       setSysopStatus((data && data.error) ? String(data.error).toUpperCase() : "THE BOARD COULD NOT FILE THAT MESSAGE.", true);
     } catch (_) {
+      resetSysopTurnstile();
       setSysopStatus("THE BOARD COULD NOT FILE THAT MESSAGE.", true);
+    }
+  }
+
+  const SYSOP_TURNSTILE_ACTION = "sysop";
+  let sysopTurnstileId = null;
+  let sysopTurnstileWait = null;
+
+  function waitForTurnstile(ms) {
+    const limit = ms || 10000;
+    if (window.turnstile && typeof window.turnstile.render === "function") {
+      return Promise.resolve(window.turnstile);
+    }
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const timer = setInterval(() => {
+        if (window.turnstile && typeof window.turnstile.render === "function") {
+          clearInterval(timer);
+          resolve(window.turnstile);
+        } else if (Date.now() - start > limit) {
+          clearInterval(timer);
+          reject(new Error("turnstile unavailable"));
+        }
+      }, 50);
+    });
+  }
+
+  function ensureSysopTurnstile() {
+    const box = $("sysop-turnstile");
+    if (!box || !window.turnstile || typeof window.turnstile.render !== "function") return null;
+    if (sysopTurnstileId != null) return sysopTurnstileId;
+    const sitekey = box.getAttribute("data-sitekey") || "";
+    if (!sitekey) return null;
+    sysopTurnstileId = window.turnstile.render(box, {
+      sitekey,
+      action: SYSOP_TURNSTILE_ACTION,
+      execution: "execute",
+      appearance: "execute",
+      callback(token) {
+        if (sysopTurnstileWait) {
+          const done = sysopTurnstileWait.resolve;
+          sysopTurnstileWait = null;
+          done(token || "");
+        }
+      },
+      "error-callback"() {
+        if (sysopTurnstileWait) {
+          const done = sysopTurnstileWait.resolve;
+          sysopTurnstileWait = null;
+          done("");
+        }
+      },
+    });
+    return sysopTurnstileId;
+  }
+
+  function getSysopTurnstileToken() {
+    return waitForTurnstile().then(() => new Promise((resolve) => {
+      const id = ensureSysopTurnstile();
+      if (id == null) {
+        resolve("");
+        return;
+      }
+      try {
+        const existing = window.turnstile.getResponse(id);
+        if (existing) {
+          resolve(existing);
+          return;
+        }
+      } catch (_) { /* fall through and execute */ }
+      sysopTurnstileWait = { resolve };
+      try {
+        window.turnstile.execute(id);
+      } catch (_) {
+        sysopTurnstileWait = null;
+        resolve("");
+        return;
+      }
+      setTimeout(() => {
+        if (sysopTurnstileWait && sysopTurnstileWait.resolve === resolve) {
+          sysopTurnstileWait = null;
+          resolve("");
+        }
+      }, 15000);
+    }));
+  }
+
+  function resetSysopTurnstile() {
+    sysopTurnstileWait = null;
+    if (window.turnstile && sysopTurnstileId != null && typeof window.turnstile.reset === "function") {
+      try { window.turnstile.reset(sysopTurnstileId); } catch (_) { /* ignore */ }
     }
   }
 

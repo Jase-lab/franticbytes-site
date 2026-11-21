@@ -25,6 +25,40 @@ const LIMITS = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const TURNSTILE_ACTION = "sysop";
+const TURNSTILE_HOSTS = new Set(["franticbytes.pages.dev", "www.franticbytes.com"]);
+
+function turnstileHostAllowed(hostname) {
+  if (!hostname || typeof hostname !== "string") return false;
+  if (TURNSTILE_HOSTS.has(hostname)) return true;
+  return hostname.endsWith(".franticbytes.pages.dev");
+}
+
+async function verifyTurnstile(request, env, token) {
+  const secret = env && env.TURNSTILE_SECRET;
+  if (!secret) return false;
+  if (typeof token !== "string" || token.length === 0 || token.length > 2048) return false;
+  try {
+    const body = new URLSearchParams({
+      secret,
+      response: token,
+    });
+    const ip = request.headers.get("CF-Connecting-IP");
+    if (ip) body.set("remoteip", ip);
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+    if (!res.ok) return false;
+    const result = await res.json();
+    return !!(result && result.success === true && result.action === TURNSTILE_ACTION && turnstileHostAllowed(result.hostname));
+  } catch {
+    return false;
+  }
+}
+
+
 function jsonResponse(status, body) {
   return new Response(JSON.stringify(body), {
     status,
@@ -145,6 +179,14 @@ export async function onRequestPost(context) {
       "MESSAGE SAVED.",
       "IT HAS BEEN FILED IN THE SYSOP MAILBOX.",
       "LORD FRAZZLE WILL SEE IT ON HIS NEXT PASS THROUGH THE BOARD.",
+    ]);
+  }
+
+  const token = data["cf-turnstile-response"] || data.turnstile || "";
+  const verified = await verifyTurnstile(request, env, token);
+  if (!verified) {
+    return reply(request, data, contentType, 403, { ok: false, error: "Could not verify this message." }, [
+      "THE BOARD COULD NOT VERIFY THIS MESSAGE.",
     ]);
   }
 

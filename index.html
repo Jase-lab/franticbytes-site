@@ -261,8 +261,9 @@
                 <label for="sysop-fax">Fax number</label>
                 <input id="sysop-fax" name="fax" type="text" tabindex="-1" autocomplete="off">
               </div>
+              <div id="sysop-turnstile" class="hp-fax" data-sitekey="0x4AAAAAAGMM1tK0D9iTjsA2" aria-hidden="true"></div>
               <div class="intro-actions">
-                <button type="submit" class="btn btn-amber" id="sysop-save">Save</button>
+                <button type="submit" class="btn btn-amber" id="sysop-save">Send to SysOp</button>
               </div>
             </form>
             <nav class="menu" id="sysop-nav" aria-label="Comment to SysOp navigation">
@@ -381,6 +382,7 @@
     </form>
   </dialog>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
   <script src="js/acey.js" defer></script>
   <script src="js/lemonade.js" defer></script>
   <script src="js/wumpus.js" defer></script>
