@@ -706,3 +706,69 @@ body.pre-login .status-bar { visibility: hidden; }
   justify-content: center;
 }
 .wumpus-path { color: var(--green); margin: 0.2rem 0; }
+
+
+.sysop-review {
+  min-height: 0;
+  margin-top: 0.8rem;
+}
+
+.sysop-status {
+  margin: 0.8rem 0 0;
+  color: var(--amber);
+}
+
+.sysop-status.err {
+  color: var(--red);
+}
+
+.sysop-body-row {
+  max-width: 100%;
+  align-items: flex-start;
+}
+
+#sysop-input,
+#sysop-body,
+.sysop-static-form input,
+.sysop-static-form select,
+.sysop-static-form textarea {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: var(--white);
+  font: inherit;
+  caret-color: var(--green);
+  padding: 0.35rem 0;
+  outline: none;
+}
+
+#sysop-body,
+.sysop-static-form textarea {
+  min-height: 8rem;
+  line-height: 1.3;
+  resize: vertical;
+}
+
+#sysop-form label,
+#sysop-body-form label,
+.sysop-static-form label {
+  display: block;
+  margin-top: 0.8rem;
+}
+
+.sysop-static-form input,
+.sysop-static-form select,
+.sysop-static-form textarea {
+  border-bottom: 2px solid var(--green-dim);
+  margin: 0.25rem 0 0.6rem;
+}
+
+.hp-fax {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

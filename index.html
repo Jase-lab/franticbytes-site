@@ -200,6 +200,49 @@
             <nav class="menu" id="door-nav" aria-label="Door navigation"></nav>
           </section>
 
+          <section id="sysop" class="panel" hidden>
+            <h2>Comment to SysOp</h2>
+            <p class="rule" aria-hidden="true">========================================</p>
+            <p id="sysop-lead" class="dim"></p>
+            <pre class="log sysop-review" id="sysop-review" hidden></pre>
+            <p id="sysop-status" class="sysop-status" hidden></p>
+            <nav class="menu" id="sysop-choices" aria-label="Message type" hidden></nav>
+            <form id="sysop-form" hidden>
+              <label for="sysop-input" id="sysop-input-label"></label>
+              <div class="prompt-row">
+                <span class="prompt" aria-hidden="true">&gt;</span>
+                <input id="sysop-input" name="sysop-field" type="text" maxlength="80" autocomplete="off" spellcheck="false" enterkeyhint="go">
+              </div>
+              <div class="hp-fax" aria-hidden="true">
+                <label for="sysop-fax">Fax number</label>
+                <input id="sysop-fax" name="fax" type="text" tabindex="-1" autocomplete="off">
+              </div>
+              <div class="intro-actions">
+                <button type="submit" class="btn btn-amber" id="sysop-next">Enter</button>
+                <button type="button" class="btn" id="sysop-skip" hidden>Skip</button>
+              </div>
+            </form>
+            <form id="sysop-body-form" hidden>
+              <label for="sysop-body" id="sysop-body-label"></label>
+              <p id="sysop-body-hint" class="dim"></p>
+              <div class="prompt-row sysop-body-row">
+                <span class="prompt" aria-hidden="true">&gt;</span>
+                <textarea id="sysop-body" name="message" maxlength="4000" rows="8" autocomplete="off" spellcheck="false" enterkeyhint="enter"></textarea>
+              </div>
+              <div class="hp-fax" aria-hidden="true">
+                <label for="sysop-fax-body">Fax number</label>
+                <input id="sysop-fax-body" name="fax" type="text" tabindex="-1" autocomplete="off">
+              </div>
+              <div class="intro-actions">
+                <button type="submit" class="btn btn-amber" id="sysop-save">Save</button>
+                <button type="button" class="btn" id="sysop-body-abort">Abort</button>
+              </div>
+            </form>
+            <nav class="menu" id="sysop-nav" aria-label="Comment to SysOp navigation">
+              <button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>
+            </nav>
+          </section>
+
           <section id="about" class="panel" hidden>
             <h2>About the board</h2>
             <p class="rule" aria-hidden="true">========================================</p>
@@ -239,6 +282,32 @@
               <p class="dim">If a link is missing, that build has not been uploaded yet.</p>
               <h3>Doors</h3>
               <p>Online door games live in the Doors area. Acey Deucey, Lemonade Stand, and Hunt the Wumpus are on bays 1 to 3 when JavaScript is on.</p>
+              <h3>Comment to SysOp</h3>
+              <p>Leave a private note for Lord Frazzle. Your handle is optional here.</p>
+              <form id="noscript-sysop" class="sysop-static-form" action="/api/sysop" method="post">
+                <label for="ns-handle">Handle (optional)</label>
+                <input id="ns-handle" name="handle" type="text" maxlength="24">
+                <label for="ns-type">Type of note</label>
+                <select id="ns-type" name="type" required>
+                  <option value="bug-report">Bug Report</option>
+                  <option value="feedback">Feedback</option>
+                  <option value="enhancement-request">Enhancement Request</option>
+                  <option value="something-else">Something Else</option>
+                </select>
+                <label for="ns-name">Real name (optional)</label>
+                <input id="ns-name" name="name" type="text" maxlength="80" autocomplete="name">
+                <label for="ns-email">Email (optional)</label>
+                <input id="ns-email" name="email" type="email" maxlength="120" autocomplete="email">
+                <label for="ns-subject">Subject</label>
+                <input id="ns-subject" name="subject" type="text" maxlength="80" required>
+                <label for="ns-message">Message</label>
+                <textarea id="ns-message" name="message" maxlength="4000" rows="8" required></textarea>
+                <div class="hp-fax" aria-hidden="true">
+                  <label for="ns-fax">Fax number</label>
+                  <input id="ns-fax" name="fax" type="text" tabindex="-1" autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-amber">Save message</button>
+              </form>
             </section>
           </noscript>
         </main>
@@ -276,7 +345,7 @@
     <ul class="help-list">
       <li><kbd>Esc</kbd> or <kbd>M</kbd> — Back to Main Menu (or skip the handshake)</li>
       <li><kbd>S</kbd> — skip handshake to the main menu</li>
-      <li>On the main menu: <kbd>W</kbd> Write65, <kbd>F</kbd> Files, <kbd>D</kbd> Doors, <kbd>A</kbd> About, <kbd>G</kbd> Goodbye</li>
+      <li>On the main menu: <kbd>W</kbd> Write65, <kbd>F</kbd> Files, <kbd>D</kbd> Doors, <kbd>C</kbd> Comment to SysOp, <kbd>A</kbd> About, <kbd>G</kbd> Goodbye</li>
       <li><kbd>1</kbd>–<kbd>4</kbd> — pick a file in Files</li>
       <li>In Doors: <kbd>1</kbd> Acey Deucey, <kbd>2</kbd> Lemonade Stand, <kbd>3</kbd> Hunt the Wumpus. In a door: <kbd>Q</kbd> back to Doors</li>
       <li><kbd>?</kbd> — this help</li>
