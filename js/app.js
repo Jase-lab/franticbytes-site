@@ -443,7 +443,7 @@
       { go: "doors", key: "D", label: "Doors" },
       { go: "sysop", key: "C", label: "Comment to SysOp" },
       { go: "about", key: "A", label: "About the board" },
-      { go: "goodbye", key: "G", label: "Goodbye / log off" },
+      { go: "goodbye", key: "G", label: "Log Off" },
     ];
     extras.forEach((item) => {
       const btn = document.createElement("button");
