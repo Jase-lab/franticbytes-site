@@ -494,8 +494,9 @@
     const product = productById(id) || firstProduct();
     if (!product) return showMenu();
     state.productId = product.id;
-    $("downloads-title").textContent = `${product.name} Files`;
-    $("downloads-lead").textContent = `This File Area has the ${product.name} drops for version ${product.version}${product.stage ? " (" + product.stage + ")" : ""}. If a file is not on the board yet, you will see COMING SOON instead of a broken link.`;
+    $("downloads-title").textContent = "Files";
+    $("downloads-lead").textContent = "This File Area has the FranticBytes downloads. If a file is not on the board yet, you will see COMING SOON instead of a broken link.";
+    $("downloads-section").innerHTML = `${escapeHtml(product.name)} <span class="ver">v${escapeHtml(product.version)}${product.stage ? " " + escapeHtml(product.stage) : ""}</span>`;
     const list = $("download-list");
     list.innerHTML = "";
     (product.downloads || []).forEach((file) => {

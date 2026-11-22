@@ -634,6 +634,16 @@ kbd {
   text-shadow: none;
 }
 
+.files-section {
+  margin: 1.1rem 0 0;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px dashed var(--amber);
+}
+
+.files-section + .download-list {
+  margin-top: 0.6rem;
+}
+
 .download-list {
   list-style: none;
   padding: 0;
