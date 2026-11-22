@@ -68,7 +68,7 @@
           "key": "4",
           "label": "Linux",
           "platform": "Linux",
-          "filename": "Write65-0.9.2-x86_64.AppImage",
+          "filename": "Write65-0.9.2-linux.zip",
           "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
         }
       ],
