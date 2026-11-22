@@ -706,7 +706,7 @@
     state.acey = { phase: "broke" };
     hideAceyForms();
     appendDoorLog("");
-    appendDoorLog("SORRY, FRIEND, BUT YOU BLEW YOUR WAD.", "err");
+    appendDoorLog("SORRY, FRIEND, BUT YOU'RE BROKE.", "err");
     appendDoorLog("TRY AGAIN (YES OR NO)");
     const box = $("acey-actions");
     if (!box) return;
