@@ -44,7 +44,7 @@
           "key": "1",
           "label": "MEGA65 disk image",
           "platform": "MEGA65",
-          "filename": "write65-0.9.2.d81",
+          "filename": "mega65.d81",
           "notes": "800 KB .d81 disk image. Copy to the SD card as MEGA65.D81 so Hyppo auto-mounts unit 8."
         },
         {
