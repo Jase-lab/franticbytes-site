@@ -443,7 +443,7 @@
       { go: "doors", key: "D", label: "Doors" },
       { go: "sysop", key: "C", label: "Comment to SysOp" },
       { go: "about", key: "A", label: "About the board" },
-      { go: "goodbye", key: "G", label: "Log Off" },
+      { go: "goodbye", key: "L", label: "Log Off" },
     ];
     extras.forEach((item) => {
       const btn = document.createElement("button");
@@ -1960,7 +1960,7 @@
       if (k === "D") { ev.preventDefault(); go("doors"); return; }
       if (k === "C") { ev.preventDefault(); go("sysop"); return; }
       if (k === "A") { ev.preventDefault(); go("about"); return; }
-      if (k === "G") { ev.preventDefault(); go("goodbye"); return; }
+      if (k === "L") { ev.preventDefault(); go("goodbye"); return; }
       if (k === "W") { ev.preventDefault(); go("product", "write65"); return; }
     }
 
