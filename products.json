@@ -35,7 +35,7 @@
       "name": "Write65",
       "version": "0.8.0",
       "stage": "beta",
-      "tagline": "A retro-style Markdown editor for the MEGA65 \u2014 and a desktop twin for Mac, PC, and Linux.",
+      "tagline": "A retro-style Markdown editor for the MEGA65 — and a desktop twin for Mac, PC, and Linux.",
       "blurb": "Write65 is a white-on-blue, F-key driven editor built for the MEGA65. The desktop edition is a pixel-accurate clone: the same menus, the same .w65 files (ISO-8859-15, 64 KB), plus themes, OS file dialogs, and MEGA65 import and export.",
       "downloadsDir": "downloads/write65",
       "downloads": [
@@ -72,7 +72,25 @@
           "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
         }
       ],
-      "menuKey": "W"
+      "menuKey": "W",
+      "copy": {
+        "headline": "Write65. Nothing between you and the next page.",
+        "subhead": "A distraction-free drafting system for the MEGA65, with desktop editions for Mac, Windows, and Linux.",
+        "paragraphs": [
+          "Remember white text on a blue screen, a blinking block cursor, and nothing to do but write? Write65 is our homage to WordPerfect, WordStar, and the DOS and terminal writing programs of the 80s and 90s. It's built for one job: getting the words down.",
+          "No notifications. No toolbars. No web browser one click away. Fire up your MEGA65, hide the menu bar and status line, and it's just you and the page. Your next scene, chapter, or screenplay act gets written, not tweaked.",
+          "When you're away from the MEGA65, your writing comes with you. The Write65 desktop app for Mac, Windows, and Linux has the same screen, the same F-key menus, and the same settings. Its Import and Export tools move your files between the MEGA65 and your computer in a few keystrokes. Save as text and your draft becomes standard UTF-8, ready for any modern editor."
+        ],
+        "features": [
+          "Typewriter Mode keeps your line centered while the page scrolls",
+          "Focus Mode dims everything but the paragraph you're working on",
+          "7 retro-style themes, or create your own style",
+          "Word count target that flags your goal when you hit it",
+          "Custom Keymap, plus accented characters for 20 western European languages",
+          "Document Info with counts and readability scores, including Flesch-Kincaid, Gunning Fog, and LIX"
+        ],
+        "closer": "Keyboard only. Ready when you are."
+      }
     }
   ]
 }

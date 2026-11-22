@@ -479,8 +479,15 @@
     body.innerHTML = `
       <div class="product-head">${product.icon ? `<img class="product-logo-img" src="${escapeHtml(product.icon)}" width="24" height="24" alt="">` : ""}<h2>${escapeHtml(product.name)} <span class="ver">v${escapeHtml(product.version)}${product.stage ? " " + escapeHtml(product.stage) : ""}</span></h2></div>
       <p class="rule" aria-hidden="true">========================================</p>
+      ${product.copy ? `
+      <p class="copy-headline">${escapeHtml(product.copy.headline || "")}</p>
+      ${product.copy.subhead ? `<p class="dim">${escapeHtml(product.copy.subhead)}</p>` : ""}
+      ${(product.copy.paragraphs || []).map((t) => `<p>${escapeHtml(t)}</p>`).join("")}
+      ${(product.copy.features || []).length ? `<ul class="copy-features">${product.copy.features.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>` : ""}
+      ${product.copy.closer ? `<p class="copy-closer">${escapeHtml(product.copy.closer)}</p>` : ""}
+      ` : `
       <p>${escapeHtml(product.tagline || "")}</p>
-      <p>${escapeHtml(product.blurb || "")}</p>
+      <p>${escapeHtml(product.blurb || "")}</p>`}
     `;
     const nav = $("product-menu");
     nav.innerHTML = `<button type="button" class="menu-item" data-go="downloads"><kbd>D</kbd> Download Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;

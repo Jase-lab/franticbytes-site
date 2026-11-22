@@ -640,7 +640,37 @@ kbd {
   border-bottom: 1px dashed var(--amber);
 }
 
-.files-section + .download-list {
+.files-section + .copy-headline {
+  color: var(--amber);
+  font-size: 1.25em;
+  margin-bottom: 0.2rem;
+}
+
+.copy-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.8rem 0;
+}
+
+.copy-features li {
+  padding-left: 1.4em;
+  text-indent: -1.4em;
+  margin: 0.25rem 0;
+}
+
+.copy-features li::before {
+  content: "* ";
+  color: var(--amber);
+  display: inline-block;
+  width: 1.4em;
+  text-indent: 0;
+}
+
+.copy-closer {
+  color: var(--amber);
+}
+
+.download-list {
   margin-top: 0.6rem;
 }
 
