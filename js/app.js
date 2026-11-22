@@ -513,35 +513,16 @@
       a.href = fileUrl(product, file);
       a.dataset.product = product.id;
       a.dataset.file = file.id;
-      a.innerHTML = `<span class="dl-num">${escapeHtml(file.key || "")}.</span><span class="dl-meta"><span class="dl-row"><span class="dl-fn">${escapeHtml(file.filename)}</span><span class="dl-size">----</span><span class="dl-date">${escapeHtml(file.date || "")}</span><span class="dl-title">${escapeHtml(file.label)}</span></span>${file.notes ? `<span class="dl-notes">| ${escapeHtml(file.notes)}</span>` : ""}</span>`;
-      fbFillSize(a, fileUrl(product, file));
+      a.innerHTML = `<span class="dl-num">${escapeHtml(file.key || "")}.</span><span class="dl-meta"><span class="dl-title">${escapeHtml(file.label)}</span><span class="dl-notes">${escapeHtml(file.filename)}</span></span>`;
       li.appendChild(a);
       list.appendChild(li);
     });
-    let head = $("download-head");
-    if (!head) {
-      head = document.createElement("div");
-      head.id = "download-head";
-      head.className = "dl-head";
-      head.setAttribute("aria-hidden", "true");
-      list.parentNode.insertBefore(head, list);
-    }
-    head.innerHTML = `<span class="dl-num">#</span><span class="dl-row"><span class="dl-fn">Filename</span><span class="dl-size">Size</span><span class="dl-date">Date</span><span class="dl-title">Description</span></span>`;
     const nav = $("downloads-nav");
     nav.innerHTML = `<button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("downloads");
     setHash("#/" + product.id + "/downloads");
     const first = list.querySelector(".dl-link");
     if (first) first.focus();
-  }
-
-  function fbFillSize(link, url) {
-    fetch(url, { method: "HEAD", cache: "no-store" }).then((r) => {
-      const n = r.ok ? parseInt(r.headers.get("content-length") || "0", 10) : 0;
-      if (!n) return;
-      const el = link.querySelector(".dl-size");
-      if (el) el.textContent = n >= 1048576 ? (n / 1048576).toFixed(1) + "M" : Math.round(n / 1024) + "K";
-    }).catch(() => {});
   }
 
   function doorList() {
