@@ -57,7 +57,7 @@
         {
           "id": "windows",
           "key": "3",
-          "label": "PC (Windows)",
+          "label": "Windows",
           "platform": "Windows",
           "filename": "Write65-0.8.0-windows.zip",
           "notes": "Windows build, including mega65-ftp tools."
