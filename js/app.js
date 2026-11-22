@@ -2224,3 +2224,11 @@
 
   boot();
 })();
+
+// Homepage blurb: swap "frantically" for a random synonym on each load.
+(function () {
+  var words = ["frantically", "feverishly", "furiously", "frenziedly", "madly", "wildly",
+    "manically", "hectically", "breathlessly", "hurriedly", "hastily", "desperately"];
+  var el = document.getElementById("frantic-word");
+  if (el) el.textContent = words[Math.floor(Math.random() * words.length)];
+})();
