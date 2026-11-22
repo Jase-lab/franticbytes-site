@@ -258,6 +258,7 @@
       el.hidden = key !== name;
     });
     state.view = name;
+    if (name === "menu" && typeof fbSetFranticWord === "function") fbSetFranticWord(true);
     document.querySelectorAll(".node-num").forEach((el) => { el.textContent = String(sessionNode()); });
     document.querySelectorAll(".baud-num").forEach((el) => { el.textContent = String(sessionBaud()); });
     document.body.classList.toggle("pre-login", name === "intro" || name === "login");
@@ -2091,7 +2092,6 @@
 
   function finishLogin(raw) {
     rememberHandle(normalizeHandle(raw));
-    if (typeof fbSetFranticWord === "function") fbSetFranticWord(true);
     resetSession();
     ensureSessionStart();
     renderStatusBar();
@@ -2226,7 +2226,7 @@
   boot();
 })();
 
-// Homepage blurb: "frantically" becomes a random synonym on each page load and each login.
+// Homepage blurb: "frantically" becomes a random synonym every time the main menu is shown.
 var FB_FRANTIC_WORDS = ["frantically", "feverishly", "furiously", "frenziedly", "madly", "wildly",
   "manically", "hectically", "breathlessly", "hurriedly", "hastily", "desperately"];
 function fbSetFranticWord(avoidCurrent) {
