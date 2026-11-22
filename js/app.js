@@ -484,7 +484,7 @@
       <p>${escapeHtml(product.blurb || "")}</p>
     `;
     const nav = $("product-menu");
-    nav.innerHTML = `<button type="button" class="menu-item" data-go="downloads"><kbd>F</kbd> Files</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
+    nav.innerHTML = `<button type="button" class="menu-item" data-go="downloads"><kbd>F</kbd> Download Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("product");
     setHash("#/" + product.id);
     nav.querySelector(".menu-item").focus();
