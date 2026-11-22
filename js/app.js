@@ -2091,7 +2091,7 @@
 
   function finishLogin(raw) {
     rememberHandle(normalizeHandle(raw));
-    if (typeof fbSetFranticWord === "function") fbSetFranticWord();
+    if (typeof fbSetFranticWord === "function") fbSetFranticWord(true);
     resetSession();
     ensureSessionStart();
     renderStatusBar();
@@ -2229,12 +2229,12 @@
 // Homepage blurb: "frantically" becomes a random synonym on each page load and each login.
 var FB_FRANTIC_WORDS = ["frantically", "feverishly", "furiously", "frenziedly", "madly", "wildly",
   "manically", "hectically", "breathlessly", "hurriedly", "hastily", "desperately"];
-function fbSetFranticWord() {
+function fbSetFranticWord(avoidCurrent) {
   var el = document.getElementById("frantic-word");
   if (!el) return;
-  var word = el.textContent;
+  var word = avoidCurrent ? el.textContent : null;
   var next = word;
   while (next === word) next = FB_FRANTIC_WORDS[Math.floor(Math.random() * FB_FRANTIC_WORDS.length)];
   el.textContent = next;
 }
-fbSetFranticWord();
+fbSetFranticWord(false);
