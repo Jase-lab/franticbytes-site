@@ -478,7 +478,7 @@
     state.productId = product.id;
     const body = $("product-body");
     body.innerHTML = `
-      <h2>${escapeHtml(product.name)} <span class="ver">v${escapeHtml(product.version)}${product.stage ? " " + escapeHtml(product.stage) : ""}</span></h2>
+      <div class="product-head">${product.icon ? `<img class="product-logo-img" src="${escapeHtml(product.icon)}" width="24" height="24" alt="">` : ""}<h2>${escapeHtml(product.name)} <span class="ver">v${escapeHtml(product.version)}${product.stage ? " " + escapeHtml(product.stage) : ""}</span></h2></div>
       <p class="rule" aria-hidden="true">========================================</p>
       <p>${escapeHtml(product.tagline || "")}</p>
       <p>${escapeHtml(product.blurb || "")}</p>

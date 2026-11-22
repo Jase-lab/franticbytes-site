@@ -31,6 +31,7 @@
   "products": [
     {
       "id": "write65",
+      "icon": "img/write65-logo.png",
       "name": "Write65",
       "version": "0.8.0",
       "stage": "beta",
