@@ -71,6 +71,55 @@
           "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
         }
       ],
+      "screens": {
+        "dir": "img/write65/screens",
+        "title": "Actual Screen Photos",
+        "lead": "Genuine Write65 screens, captured on the MEGA65. What you see here is what you get.",
+        "plates": [
+          {
+            "key": "1",
+            "id": "main-menu",
+            "file": "main-menu.png",
+            "title": "Main Menu",
+            "caption": "Pick up right where you left off. Your recent documents, seven built-in themes, and the File Manager are all one keystroke away the moment Write65 loads."
+          },
+          {
+            "key": "2",
+            "id": "editor",
+            "file": "editor.png",
+            "title": "The Editor",
+            "caption": "Just you, the page, and a blinking cursor. Classic F-key menus for File, Edit, View, Paragraph, and Tools keep every command at your fingertips."
+          },
+          {
+            "key": "3",
+            "id": "file-manager",
+            "file": "file-manager.png",
+            "title": "File Manager",
+            "caption": "Two drives, side by side. Mount a disk image, then preview, copy, move, rename, and delete your documents without ever leaving Write65."
+          },
+          {
+            "key": "4",
+            "id": "theme-editor",
+            "file": "theme-editor.png",
+            "title": "Theme Editor",
+            "caption": "Paint your own screen. Dial in the paper, text, status, and accent colors and see them come to life in the preview before you hit Update."
+          },
+          {
+            "key": "5",
+            "id": "keymap-editor",
+            "file": "keymap-editor.png",
+            "title": "Keymap Editor",
+            "caption": "Your keyboard, your rules. Press any key on the MEGA65 to remap it, and one Reset puts the standard layout right back."
+          },
+          {
+            "key": "6",
+            "id": "doc-info",
+            "file": "doc-info.png",
+            "title": "Document Info",
+            "caption": "Know your numbers. Words, sentences, pages, and readability scores from Flesch-Kincaid to LIX, plus a gauge that shows how much of your 64 KB you've filled."
+          }
+        ]
+      },
       "menuKey": "W",
       "copy": {
         "headline": "Write65. Nothing between you and the next page.",

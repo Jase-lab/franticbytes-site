@@ -103,7 +103,56 @@
             "filename": "Write65-0.9.2-linux.zip",
             "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
           }
-        ]
+        ],
+        "screens": {
+          "dir": "img/write65/screens",
+          "title": "Actual Screen Photos",
+          "lead": "Genuine Write65 screens, captured on the MEGA65. What you see here is what you get.",
+          "plates": [
+            {
+              "key": "1",
+              "id": "main-menu",
+              "file": "main-menu.png",
+              "title": "Main Menu",
+              "caption": "Pick up right where you left off. Your recent documents, seven built-in themes, and the File Manager are all one keystroke away the moment Write65 loads."
+            },
+            {
+              "key": "2",
+              "id": "editor",
+              "file": "editor.png",
+              "title": "The Editor",
+              "caption": "Just you, the page, and a blinking cursor. Classic F-key menus for File, Edit, View, Paragraph, and Tools keep every command at your fingertips."
+            },
+            {
+              "key": "3",
+              "id": "file-manager",
+              "file": "file-manager.png",
+              "title": "File Manager",
+              "caption": "Two drives, side by side. Mount a disk image, then preview, copy, move, rename, and delete your documents without ever leaving Write65."
+            },
+            {
+              "key": "4",
+              "id": "theme-editor",
+              "file": "theme-editor.png",
+              "title": "Theme Editor",
+              "caption": "Paint your own screen. Dial in the paper, text, status, and accent colors and see them come to life in the preview before you hit Update."
+            },
+            {
+              "key": "5",
+              "id": "keymap-editor",
+              "file": "keymap-editor.png",
+              "title": "Keymap Editor",
+              "caption": "Your keyboard, your rules. Press any key on the MEGA65 to remap it, and one Reset puts the standard layout right back."
+            },
+            {
+              "key": "6",
+              "id": "doc-info",
+              "file": "doc-info.png",
+              "title": "Document Info",
+              "caption": "Know your numbers. Words, sentences, pages, and readability scores from Flesch-Kincaid to LIX, plus a gauge that shows how much of your 64 KB you've filled."
+            }
+          ]
+        }
       }
     ]
   }
@@ -169,6 +218,14 @@
           <section id="product" class="panel" hidden>
             <div id="product-body"></div>
             <nav class="menu" id="product-menu" aria-label="Product menu"></nav>
+          </section>
+
+          <section id="screens" class="panel" hidden>
+            <h2 id="screens-title">Actual Screen Photos</h2>
+            <p id="screens-lead" class="dim"></p>
+            <h3 class="files-section" id="screens-section"></h3>
+            <div class="screen-plates" id="screen-plates"></div>
+            <nav class="menu" id="screens-nav" aria-label="Screen photos navigation"></nav>
           </section>
 
           <section id="downloads" class="panel" hidden>
@@ -368,6 +425,7 @@
       <li><kbd>Esc</kbd> or <kbd>M</kbd> — Back to Main Menu (or skip the handshake)</li>
       <li><kbd>S</kbd> — skip handshake to the main menu</li>
       <li>On the main menu: <kbd>W</kbd> Write65, <kbd>F</kbd> Files, <kbd>D</kbd> Doors, <kbd>C</kbd> Comment to SysOp, <kbd>L</kbd> Log Off</li>
+      <li>On Write65: <kbd>S</kbd> Actual Screen Photos (<kbd>1</kbd>–<kbd>6</kbd> jump to a figure), <kbd>D</kbd> Download Write65</li>
       <li><kbd>1</kbd>–<kbd>4</kbd> — pick a file in Files</li>
       <li>In Doors: <kbd>1</kbd> Acey Deucey, <kbd>2</kbd> Lemonade Stand, <kbd>3</kbd> Hunt the Wumpus. In a door: <kbd>Q</kbd> back to Doors</li>
       <li><kbd>?</kbd> — this help</li>

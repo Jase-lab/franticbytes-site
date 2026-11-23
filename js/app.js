@@ -11,6 +11,7 @@
     menu: $("menu"),
     product: $("product"),
     downloads: $("downloads"),
+    screens: $("screens"),
     doors: $("doors"),
     door: $("door"),
     sysop: $("sysop"),
@@ -322,7 +323,7 @@
     const q = new URLSearchParams(location.search);
     if (q.has("skip") || q.has("fast") || q.get("go") === "downloads") return true;
     const h = (location.hash || "").toLowerCase();
-    if (h === "#downloads" || h === "#/downloads" || h === "#write65" || h === "#/write65" || h === "#/write65/downloads" || h === "#menu" || h === "#/menu" || h === "#about" || h === "#/about" || h === "#sysop" || h === "#/sysop" || h === "#doors" || h === "#/doors" || h.startsWith("#/doors/")) {
+    if (h === "#downloads" || h === "#/downloads" || h === "#write65" || h === "#/write65" || h === "#/write65/downloads" || h === "#/write65/screens" || h === "#menu" || h === "#/menu" || h === "#about" || h === "#/about" || h === "#sysop" || h === "#/sysop" || h === "#doors" || h === "#/doors" || h.startsWith("#/doors/")) {
       return true;
     }
     return false;
@@ -491,7 +492,10 @@
       <p>${escapeHtml(product.blurb || "")}</p>`}
     `;
     const nav = $("product-menu");
-    nav.innerHTML = `<button type="button" class="menu-item" data-go="downloads"><kbd>D</kbd> Download Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
+    const screensBtn = product.screens && (product.screens.plates || []).length
+      ? `<button type="button" class="menu-item" data-go="screens"><kbd>S</kbd> ${escapeHtml(product.screens.title || "Actual Screen Photos")}</button>`
+      : "";
+    nav.innerHTML = `${screensBtn}<button type="button" class="menu-item" data-go="downloads"><kbd>D</kbd> Download Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("product");
     setHash("#/" + product.id);
     nav.querySelector(".menu-item").focus();
@@ -523,6 +527,51 @@
     setHash("#/" + product.id + "/downloads");
     const first = list.querySelector(".dl-link");
     if (first) first.focus();
+  }
+
+  function showScreens(id) {
+    const product = productById(id) || firstProduct();
+    if (!product || !product.screens) return showProduct(id);
+    state.productId = product.id;
+    const shots = product.screens;
+    const dir = (shots.dir || "img/" + product.id + "/screens").replace(/\/$/, "");
+    $("screens-title").textContent = shots.title || "Actual Screen Photos";
+    $("screens-lead").textContent = shots.lead || "";
+    $("screens-section").innerHTML = `${escapeHtml(product.name)} <span class="ver">v${escapeHtml(product.version)}${product.stage ? " " + escapeHtml(product.stage) : ""}</span>`;
+    const wrap = $("screen-plates");
+    wrap.innerHTML = (shots.plates || []).map((p) => {
+      const src = dir + "/" + p.file;
+      return `
+      <figure class="plate" id="plate-${escapeHtml(p.id)}" data-key="${escapeHtml(p.key)}">
+        <a class="plate-monitor" href="${escapeHtml(src)}" target="_blank" rel="noopener" aria-label="Fig. ${escapeHtml(p.key)}: ${escapeHtml(p.title)} (open full size)">
+          <span class="plate-stamp" aria-hidden="true">Actual Screen</span>
+          <span class="plate-glass">
+            <img src="${escapeHtml(src)}" width="640" height="400" alt="Write65 ${escapeHtml(p.title)} screen on the MEGA65" loading="lazy" decoding="async">
+          </span>
+          <span class="plate-chin" aria-hidden="true"><span class="plate-badge">MEGA65</span><span class="plate-led"></span></span>
+        </a>
+        <figcaption>
+          <span class="plate-fig">Fig. ${escapeHtml(p.key)}</span> <span class="plate-title">${escapeHtml(p.title)}</span>
+          <span class="plate-copy">${escapeHtml(p.caption)}</span>
+        </figcaption>
+      </figure>`;
+    }).join("");
+    const nav = $("screens-nav");
+    nav.innerHTML = `<button type="button" class="menu-item" data-go="downloads"><kbd>D</kbd> Download Write65</button><button type="button" class="menu-item" data-go="product"><kbd>W</kbd> Back to Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
+    showPanel("screens");
+    setHash("#/" + product.id + "/screens");
+    $("app").scrollTop = 0;
+    const first = wrap.querySelector(".plate-monitor");
+    if (first) first.focus({ preventScroll: true });
+  }
+
+  function jumpToPlate(key) {
+    const fig = $("screen-plates").querySelector(`.plate[data-key="${key}"]`);
+    if (!fig) return false;
+    const link = fig.querySelector(".plate-monitor");
+    fig.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    if (link) link.focus({ preventScroll: true });
+    return true;
   }
 
   function doorList() {
@@ -1833,6 +1882,9 @@
       case "downloads":
         showDownloads(state.productId);
         break;
+      case "screens":
+        showScreens(state.productId);
+        break;
       case "doors":
         showDoors();
         break;
@@ -1862,9 +1914,9 @@
     if (h === "doors") return { view: "doors" };
     const doorMatch = h.match(/^doors\/([a-z0-9-]+)$/);
     if (doorMatch) return { view: "door", doorId: doorMatch[1] };
-    const m = h.match(/^([a-z0-9-]+)(?:\/(downloads))?$/);
+    const m = h.match(/^([a-z0-9-]+)(?:\/(downloads|screens))?$/);
     if (m && productById(m[1])) {
-      return { view: m[2] ? "downloads" : "product", productId: m[1] };
+      return { view: m[2] || "product", productId: m[1] };
     }
     return { view: "menu" };
   }
@@ -1972,6 +2024,13 @@
     }
 
     if (state.view === "product" && k === "D" && !typing) { ev.preventDefault(); go("downloads"); return; }
+    if (state.view === "product" && k === "S" && !typing) { ev.preventDefault(); go("screens"); return; }
+
+    if (state.view === "screens") {
+      if (k === "D") { ev.preventDefault(); go("downloads"); return; }
+      if (k === "W") { ev.preventDefault(); go("product"); return; }
+      if (k >= "1" && k <= "9" && jumpToPlate(k)) { ev.preventDefault(); return; }
+    }
 
     if (state.view === "sysop" && state.sysop && state.sysop.step !== "done") {
       const picked = SYSOP_TYPES.find((t) => t.key === k);
@@ -2202,6 +2261,8 @@
       const route = routeFromHash();
       if (wantsDownloads() || route.view === "downloads") {
         go("downloads", route.productId);
+      } else if (route.view === "screens") {
+        go("screens", route.productId);
       } else if (route.view === "doors") {
         go("doors");
       } else if (route.view === "door") {
