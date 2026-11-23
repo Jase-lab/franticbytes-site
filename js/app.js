@@ -28,7 +28,7 @@
     cancelled: false,
   };
 
-  const SESSION_LIMIT = 20;
+  const SESSION_LIMIT = 30;
   const SS_SESSION_START = "fb_session_start";
   const SS_TIMEUP = "fb_timeup_shown";
 
