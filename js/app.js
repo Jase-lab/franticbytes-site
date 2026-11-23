@@ -338,10 +338,18 @@
     return q.get("go") === "downloads" || h === "#downloads" || h === "#/downloads" || h === "#/write65/downloads";
   }
 
+  function isIntroHash(h) {
+    const n = (h || "").toLowerCase();
+    return !n || n === "#" || n === "#/connect" || n === "#connect" || n === "#/login" || n === "#login";
+  }
+
   function setHash(path) {
     const next = path.startsWith("#") ? path : "#" + path;
-    if (location.hash !== next) {
+    if (location.hash === next) return;
+    if (state.syncingHash || isIntroHash(location.hash) || isIntroHash(next)) {
       history.replaceState(null, "", next);
+    } else {
+      history.pushState(null, "", next);
     }
   }
 
@@ -1809,9 +1817,9 @@
     if (state.view === "goodbye") {
       document.body.classList.add("pre-login");
       resetSession();
+      const btn = panels.goodbye.querySelector("[data-go='connect']");
+      if (btn) btn.focus();
     }
-    const btn = panels.goodbye.querySelector("[data-go='connect']");
-    if (btn) btn.focus();
   }
 
   function openComingSoon(file, product) {
@@ -1901,6 +1909,61 @@
       default:
         showMenu();
     }
+  }
+
+  function showRoute(route) {
+    state.syncingHash = true;
+    try {
+      cancelType();
+      hideWumpusPanel();
+      if (route.productId) state.productId = route.productId;
+      if (route.view !== "connect" && route.view !== "login" && !state.handle) finishLogin("GUEST");
+      switch (route.view) {
+        case "connect":
+          showPanel("intro");
+          break;
+        case "login":
+          showLogin();
+          break;
+        case "menu":
+          showMenu();
+          break;
+        case "product":
+          showProduct(route.productId || state.productId);
+          break;
+        case "downloads":
+          showDownloads(route.productId || state.productId);
+          break;
+        case "screens":
+          showScreens(route.productId || state.productId);
+          break;
+        case "doors":
+          showDoors();
+          break;
+        case "door":
+          showDoor(route.doorId || state.doorId || "acey-deucey");
+          break;
+        case "sysop":
+          showSysop();
+          break;
+        case "about":
+          showAbout();
+          break;
+        case "goodbye":
+          showGoodbye();
+          break;
+        default:
+          showMenu();
+      }
+    } finally {
+      state.syncingHash = false;
+    }
+  }
+
+  function bindHistory() {
+    window.addEventListener("popstate", () => {
+      showRoute(routeFromHash());
+    });
   }
 
   function routeFromHash() {
@@ -2279,10 +2342,12 @@
       } else {
         go("menu");
       }
+      bindHistory();
       return;
     }
 
     await runConnect();
+    bindHistory();
   }
 
   boot();
