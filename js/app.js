@@ -269,6 +269,9 @@
       renderSessionFooter();
     }
     $("app").focus({ preventScroll: true });
+    // Every screen opens at the top; route focus below uses preventScroll so it can't jump to the bottom menu.
+    $("app").scrollTop = 0;
+    window.scrollTo(0, 0);
   }
 
   function rememberHandle(name) {
@@ -462,7 +465,7 @@
     showPanel("menu");
     setHash("#/menu");
     const first = $("main-menu").querySelector(".menu-item");
-    if (first) first.focus();
+    if (first) first.focus({ preventScroll: true });
   }
 
   function escapeHtml(s) {
@@ -498,7 +501,7 @@
     nav.innerHTML = `${screensBtn}<button type="button" class="menu-item" data-go="downloads"><kbd>D</kbd> Download Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("product");
     setHash("#/" + product.id);
-    nav.querySelector(".menu-item").focus();
+    nav.querySelector(".menu-item").focus({ preventScroll: true });
   }
 
   function showDownloads(id) {
@@ -526,7 +529,7 @@
     showPanel("downloads");
     setHash("#/" + product.id + "/downloads");
     const first = list.querySelector(".dl-link");
-    if (first) first.focus();
+    if (first) first.focus({ preventScroll: true });
   }
 
   function showScreens(id) {
@@ -560,7 +563,6 @@
     nav.innerHTML = `<button type="button" class="menu-item" data-go="downloads"><kbd>D</kbd> Download Write65</button><button type="button" class="menu-item" data-go="product"><kbd>W</kbd> Back to Write65</button><button type="button" class="menu-item" data-go="menu"><kbd>M</kbd> Back to Main Menu</button>`;
     showPanel("screens");
     setHash("#/" + product.id + "/screens");
-    $("app").scrollTop = 0;
     const first = wrap.querySelector(".plate-monitor");
     if (first) first.focus({ preventScroll: true });
   }
@@ -644,7 +646,7 @@
     showPanel("doors");
     setHash("#/doors");
     const first = list.querySelector(".dl-link, .door-slot");
-    if (first) first.focus();
+    if (first) first.focus({ preventScroll: true });
   }
 
   const SS_ACEY_CREDITS = "fb_acey_credits";
@@ -1787,7 +1789,7 @@
     showPanel("about");
     setHash("#/about");
     const back = panels.about.querySelector("[data-go='menu']");
-    if (back) back.focus();
+    if (back) back.focus({ preventScroll: true });
   }
 
   async function showGoodbye() {
