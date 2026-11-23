@@ -547,7 +547,6 @@
       return `
       <figure class="plate" id="plate-${escapeHtml(p.id)}" data-key="${escapeHtml(p.key)}">
         <a class="plate-monitor" href="${escapeHtml(src)}" target="_blank" rel="noopener" aria-label="Fig. ${escapeHtml(p.key)}: ${escapeHtml(p.title)} (open full size)">
-          <span class="plate-stamp" aria-hidden="true">Actual Screen</span>
           <span class="plate-glass">
             <img src="${escapeHtml(src)}" width="640" height="400" alt="Write65 ${escapeHtml(p.title)} screen on the MEGA65" loading="lazy" decoding="async">
           </span>
