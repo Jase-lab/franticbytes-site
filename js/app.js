@@ -551,7 +551,7 @@
           <span class="plate-glass">
             <img src="${escapeHtml(src)}" width="640" height="400" alt="Write65 ${escapeHtml(p.title)} screen on the MEGA65" loading="lazy" decoding="async">
           </span>
-          <span class="plate-chin" aria-hidden="true"><span class="plate-badge">MEGA65</span><span class="plate-led"></span></span>
+          <span class="plate-chin" aria-hidden="true"><span class="plate-badge">&nbsp;</span><span class="plate-led"></span></span>
         </a>
         <figcaption>
           <span class="plate-fig">Fig. ${escapeHtml(p.key)}</span> <span class="plate-title">${escapeHtml(p.title)}</span>
