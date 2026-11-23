@@ -102,21 +102,21 @@
             "id": "theme-editor",
             "file": "theme-editor.png",
             "title": "Theme Editor",
-            "caption": "Paint your own screen. Dial in the paper, text, status, and accent colors and see them come to life in the preview before you hit Update."
+            "caption": "Set the colors just like you like them. not just the ones we think are cool."
           },
           {
             "key": "5",
             "id": "keymap-editor",
             "file": "keymap-editor.png",
             "title": "Keymap Editor",
-            "caption": "Your keyboard, your rules. Press any key on the MEGA65 to remap it, and one Reset puts the standard layout right back."
+            "caption": "Your keyboard, your rules. Press any key on the MEGA65 to remap it. Here's my pet peeve fixed - apostrophe and quotation where my pinky expects them."
           },
           {
             "key": "6",
             "id": "doc-info",
             "file": "doc-info.png",
             "title": "Document Info",
-            "caption": "Know your numbers. Words, sentences, pages, and readability scores from Flesch-Kincaid to LIX, plus a gauge that shows how much of your 64 KB you've filled."
+            "caption": "Know your numbers. Words, sentences, pages, and readability scores, and doc size always just a keystroke away."
           }
         ]
       },
