@@ -33,7 +33,7 @@
       "id": "write65",
       "icon": "img/write65-logo.png",
       "name": "Write65",
-      "version": "0.9.2",
+      "version": "0.9.3",
       "stage": "beta",
       "tagline": "A distraction-free drafting system for the MEGA65, with desktop editions for Mac, Windows, and Linux.",
       "downloadsDir": "downloads/write65",
@@ -43,15 +43,15 @@
           "key": "1",
           "label": "MEGA65 disk image",
           "platform": "MEGA65",
-          "filename": "mega65.d81",
-          "notes": "800 KB .d81 disk image. Copy to the SD card as MEGA65.D81 so Hyppo auto-mounts unit 8."
+          "filename": "Write65-0.9.3-mega65.zip",
+          "notes": "Zip with the 800 KB .d81 disk image and release notes. Copy mega65.d81 to the SD card as MEGA65.D81 so Hyppo auto-mounts unit 8."
         },
         {
           "id": "macos",
           "key": "2",
           "label": "Mac",
           "platform": "macOS",
-          "filename": "Write65-0.9.2-macos.zip",
+          "filename": "Write65-0.9.3-macos.zip",
           "notes": "macOS app bundle."
         },
         {
@@ -59,7 +59,7 @@
           "key": "3",
           "label": "Windows",
           "platform": "Windows",
-          "filename": "Write65-0.9.2-windows.zip",
+          "filename": "Write65-0.9.3-windows.zip",
           "notes": "Windows build, including mega65-ftp tools."
         },
         {
@@ -67,7 +67,7 @@
           "key": "4",
           "label": "Linux",
           "platform": "Linux",
-          "filename": "Write65-0.9.2-linux.zip",
+          "filename": "Write65-0.9.3-linux.zip",
           "notes": "AppImage linked for glibc 2.35 (Ubuntu 22.04 LTS, Fedora 36+, Debian 12+)."
         }
       ],
